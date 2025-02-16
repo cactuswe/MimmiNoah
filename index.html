@@ -8,7 +8,7 @@
     <script type="module">
         // Importera Firebase
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getDatabase, ref, set, onValue, push, remove } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+        import { getDatabase, ref, onValue, push, remove } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
         // Firebase-konfiguration
         const firebaseConfig = {
@@ -27,55 +27,60 @@
         const drawingsRef = ref(db, "drawings");
         const colorsRef = ref(db, "colors");
 
-        // Tillgängliga färger
-        const availableColors = ["#FF0000", "#00FF00", "#0000FF", "#FFFF00", "#FF00FF", "#00FFFF", "#FFA500", "#800080", "#008000", "#000000"];
+        // Definiera färger
+        const colors = {
+            noah: "#1E90FF", // Blå färg för Noah
+            mimmi: "#FFB6C1" // Pastellfärg för Mimmi
+        };
+
+        let selectedUser = localStorage.getItem("selectedUser");
         let selectedColor = localStorage.getItem("selectedColor");
 
-        async function chooseColor() {
-            const snapshot = await fetchColors();
-            const takenColors = Object.values(snapshot || {});
+        // Välj användare och färg
+        function chooseUser() {
+            document.body.innerHTML = "<h2>Vem är du?</h2>";
+            const noahButton = document.createElement("button");
+            noahButton.textContent = "Noah";
+            noahButton.style.backgroundColor = colors.noah;
+            noahButton.onclick = () => {
+                selectedUser = "noah";
+                selectedColor = colors.noah;
+                localStorage.setItem("selectedUser", selectedUser);
+                localStorage.setItem("selectedColor", selectedColor);
+                push(colorsRef, { [selectedUser]: selectedColor });
+                startCanvas();
+            };
 
-            // Skapa färgvalsknappar
-            document.body.innerHTML = "<h2>Välj en färg</h2>";
-            availableColors.forEach(color => {
-                if (!takenColors.includes(color)) {
-                    let btn = document.createElement("button");
-                    btn.style.backgroundColor = color;
-                    btn.style.width = "50px";
-                    btn.style.height = "50px";
-                    btn.style.border = "none";
-                    btn.style.margin = "5px";
-                    btn.onclick = () => {
-                        selectedColor = color;
-                        localStorage.setItem("selectedColor", color);
-                        push(colorsRef, color);
-                        startCanvas();
-                    };
-                    document.body.appendChild(btn);
-                }
-            });
+            const mimmiButton = document.createElement("button");
+            mimmiButton.textContent = "Mimmi";
+            mimmiButton.style.backgroundColor = colors.mimmi;
+            mimmiButton.onclick = () => {
+                selectedUser = "mimmi";
+                selectedColor = colors.mimmi;
+                localStorage.setItem("selectedUser", selectedUser);
+                localStorage.setItem("selectedColor", selectedColor);
+                push(colorsRef, { [selectedUser]: selectedColor });
+                startCanvas();
+            };
+
+            document.body.appendChild(noahButton);
+            document.body.appendChild(mimmiButton);
         }
 
-        async function fetchColors() {
-            return new Promise(resolve => {
-                onValue(colorsRef, (snapshot) => {
-                    resolve(snapshot.val());
-                });
-            });
-        }
-
+        // Starta ritningen
         function startCanvas() {
             document.body.innerHTML = ""; // Rensa sidan
 
             // Skapa canvas
             const canvas = document.createElement("canvas");
             document.body.appendChild(canvas);
-            const ctx = canvas.getContext("2d"); // Skapa ctx här, undvik duplicering
+            const ctx = canvas.getContext("2d");
 
             let drawing = false;
             let lastX = 0;
             let lastY = 0;
-            let color = selectedColor;
+            let points = [];
+            const color = selectedColor;
 
             // Anpassa canvas till skärmen
             function resizeCanvas() {
@@ -90,10 +95,19 @@
                 drawing = true;
                 lastX = e.touches ? e.touches[0].clientX : e.clientX;
                 lastY = e.touches ? e.touches[0].clientY : e.clientY;
+                points = [{ x: lastX, y: lastY }];
             }
 
             function stopDrawing() {
                 drawing = false;
+                if (points.length > 1) {
+                    push(drawingsRef, {
+                        user: selectedUser,
+                        points,
+                        color,
+                        timestamp: Date.now()
+                    });
+                }
             }
 
             function draw(e) {
@@ -101,6 +115,7 @@
 
                 let x = e.touches ? e.touches[0].clientX : e.clientX;
                 let y = e.touches ? e.touches[0].clientY : e.clientY;
+                points.push({ x, y });
 
                 ctx.beginPath();
                 ctx.moveTo(lastX, lastY);
@@ -112,12 +127,6 @@
 
                 lastX = x;
                 lastY = y;
-
-                // Skicka data till Firebase
-                push(drawingsRef, {
-                    x, y, color,
-                    timestamp: Date.now()
-                });
             }
 
             // Event listeners för ritning
@@ -132,11 +141,19 @@
             onValue(drawingsRef, (snapshot) => {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 snapshot.forEach((child) => {
-                    const { x, y, color } = child.val();
+                    const { points, color } = child.val();
                     ctx.beginPath();
-                    ctx.arc(x, y, 5, 0, Math.PI * 2);
-                    ctx.fillStyle = color;
-                    ctx.fill();
+                    points.forEach((point, index) => {
+                        if (index === 0) {
+                            ctx.moveTo(point.x, point.y);
+                        } else {
+                            ctx.lineTo(point.x, point.y);
+                        }
+                    });
+                    ctx.lineWidth = 5;
+                    ctx.strokeStyle = color;
+                    ctx.lineCap = "round";
+                    ctx.stroke();
                 });
             });
 
@@ -152,18 +169,18 @@
             }, 60000); // Kör rensningen varje minut
         }
 
-        // Om användaren redan har valt färg, starta canvas direkt
-        if (selectedColor) {
+        // Om användaren redan har valt användare, starta canvas direkt
+        if (selectedUser && selectedColor) {
             startCanvas();
         } else {
-            // Annars visa färgval
-            chooseColor();
+            // Annars visa användarval
+            chooseUser();
         }
     </script>
     <style>
         body { margin: 0; overflow: hidden; display: flex; justify-content: center; align-items: center; flex-direction: column; }
         canvas { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; }
-        button { cursor: pointer; }
+        button { cursor: pointer; margin: 5px; padding: 10px 20px; font-size: 18px; border: none; color: white; }
     </style>
 </head>
 <body>
