@@ -80,6 +80,7 @@
             let lastX = 0;
             let lastY = 0;
             let points = [];
+            let lineWidth = 5;
             const color = selectedColor;
 
             // Anpassa canvas till skärmen
@@ -89,6 +90,31 @@
             }
             resizeCanvas();
             window.addEventListener("resize", resizeCanvas);
+
+            // Ändra storlek på pennan
+            const sizeControl = document.createElement("input");
+            sizeControl.type = "range";
+            sizeControl.min = 1;
+            sizeControl.max = 20;
+            sizeControl.value = lineWidth;
+            sizeControl.style.position = "absolute";
+            sizeControl.style.top = "10px";
+            sizeControl.style.left = "10px";
+            sizeControl.addEventListener("input", (e) => {
+                lineWidth = e.target.value;
+            });
+            document.body.appendChild(sizeControl);
+
+            // Rensa ritningar
+            const clearButton = document.createElement("button");
+            clearButton.textContent = "Ta bort mina ritningar";
+            clearButton.style.position = "absolute";
+            clearButton.style.top = "10px";
+            clearButton.style.left = "100px";
+            clearButton.onclick = () => {
+                remove(ref(db, `drawings/${selectedUser}`));
+            };
+            document.body.appendChild(clearButton);
 
             // Ritningsfunktioner
             function startDrawing(e) {
@@ -105,6 +131,7 @@
                         user: selectedUser,
                         points,
                         color,
+                        lineWidth,
                         timestamp: Date.now()
                     });
                 }
@@ -120,7 +147,7 @@
                 ctx.beginPath();
                 ctx.moveTo(lastX, lastY);
                 ctx.lineTo(x, y);
-                ctx.lineWidth = 5;
+                ctx.lineWidth = lineWidth;
                 ctx.strokeStyle = color;
                 ctx.lineCap = "round";
                 ctx.stroke();
@@ -141,7 +168,8 @@
             onValue(drawingsRef, (snapshot) => {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 snapshot.forEach((child) => {
-                    const { points, color } = child.val();
+                    const { points, color, lineWidth } = child.val();
+                    if (child.val().user !== selectedUser) return; // Endast den egna användaren
                     ctx.beginPath();
                     points.forEach((point, index) => {
                         if (index === 0) {
@@ -150,19 +178,19 @@
                             ctx.lineTo(point.x, point.y);
                         }
                     });
-                    ctx.lineWidth = 5;
+                    ctx.lineWidth = lineWidth;
                     ctx.strokeStyle = color;
                     ctx.lineCap = "round";
                     ctx.stroke();
                 });
             });
 
-            // Automatisk rensning av ritningar efter 24 timmar
+            // Rensa gamla ritningar efter en viss gräns
             setInterval(() => {
                 onValue(drawingsRef, (snapshot) => {
                     snapshot.forEach((child) => {
                         if (Date.now() - child.val().timestamp > 24 * 60 * 60 * 1000) {
-                            remove(ref(db, "drawings/" + child.key));
+                            remove(ref(db, `drawings/${child.key}`));
                         }
                     });
                 });
@@ -181,6 +209,7 @@
         body { margin: 0; overflow: hidden; display: flex; justify-content: center; align-items: center; flex-direction: column; }
         canvas { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; }
         button { cursor: pointer; margin: 5px; padding: 10px 20px; font-size: 18px; border: none; color: white; }
+        input[type="range"] { margin: 10px; }
     </style>
 </head>
 <body>
