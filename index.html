@@ -112,7 +112,9 @@
             clearButton.style.top = "10px";
             clearButton.style.left = "100px";
             clearButton.onclick = () => {
-                remove(ref(db, `drawings/${selectedUser}`));
+                // Ta bort alla ritningar som tillhör den nuvarande användaren
+                const userDrawingsRef = ref(db, `drawings/${selectedUser}`);
+                remove(userDrawingsRef);
             };
             document.body.appendChild(clearButton);
 
