@@ -1,348 +1,119 @@
 <!DOCTYPE html>
 <html lang="sv">
 <head>
-  <meta charset="UTF-8" />
-  <!-- Förhindra zoom på iOS/Android: max-scale=1.0 och user-scalable=no -->
-  <meta name="viewport" 
-        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>❤️</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rita i realtid</title>
+    <script type="module">
+        // Importera Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getDatabase, ref, set, onValue, push, remove } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
-  <!-- iOS helskärm -->
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
-  
-  <style>
-    /* Nollställning och undvik scroll helt */
-    html, body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      font-family: Arial, sans-serif;
-      color: #fff;
-      overflow: hidden; /* Ingen scroll! */
-      /* Nedsättning av iOS "bounce" (ingen hård garanti, men hjälper ofta): */
-      overscroll-behavior: none;
-      -webkit-overflow-scrolling: none;
-    }
+        // Firebase-konfiguration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBDMAPvvCb1MFFWgVb_8GTpQYwMSAR9uBU",
+            authDomain: "mimminoah-ee32a.firebaseapp.com",
+            databaseURL: "https://mimminoah-ee32a-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "mimminoah-ee32a",
+            storageBucket: "mimminoah-ee32a.firebasestorage.app",
+            messagingSenderId: "598999784847",
+            appId: "1:598999784847:web:3de2bb39f019deeca27ffa"
+        };
 
-    .mainContainer {
-      width: 100%;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-    }
+        // Initiera Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const drawingsRef = ref(db, "drawings");
 
-    /* ÖVRE SEKTION: 50vh med bakgrundsbild */
-    #appContainer {
-      position: relative;
-      width: 100%;
-      height: 50vh;
-      background: url('din-bild.jpg') center/cover no-repeat;
-      /* Justera efter behov: */
-      background-position-y: -170px; 
-      background-size: 200%;
-    }
-    #overlay {
-      position: absolute;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.5); 
-      backdrop-filter: blur(2px);
-      z-index: 0;
-    }
-    #content {
-      position: relative;
-      z-index: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100%;
-      box-sizing: border-box;
-      text-align: center;
-      padding: 20px;
-    }
+        // HTML-element
+        const canvas = document.createElement("canvas");
+        document.body.appendChild(canvas);
+        const ctx = canvas.getContext("2d");
+        let drawing = false;
+        let color = "#000000";
 
-    h1 {
-      margin-bottom: 20px;
-      font-size: 2rem;
-      text-shadow: 2px 2px 6px rgba(0,0,0,0.6);
-      animation: fadeIn 1s ease forwards;
-    }
+        // Anpassa canvas till skärmen
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener("resize", resizeCanvas);
 
-    #personalNote {
-      margin-bottom: 20px;
-      font-size: 1rem;
-      font-style: italic;
-      max-width: 600px;
-      line-height: 1.4;
-    }
+        // Färgval
+        const colorPicker = document.createElement("input");
+        colorPicker.type = "color";
+        colorPicker.style.position = "absolute";
+        colorPicker.style.top = "10px";
+        colorPicker.style.left = "10px";
+        colorPicker.addEventListener("input", (e) => {
+            color = e.target.value;
+        });
+        document.body.appendChild(colorPicker);
 
-    /* Cirkelformad container för räknaren */
-    #counterCircle {
-      width: 150px;
-      height: 260px;
-      border-radius: 10px;
-      background: linear-gradient(175deg, rgba(255, 255, 255, 0.4), rgba(70, 70, 70, 0.4));
-      box-shadow: 0 0 15px rgba(0,0,0,0.3);
-      text-align: left;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      animation: fadeIn 1.5s ease forwards;
-    }
+        // Ritningsfunktioner
+        function startDrawing(e) {
+            drawing = true;
+            draw(e);
+        }
 
-    #loveCounter {
-      font-size: 1.1rem;
-      line-height: 1.6;
-      color: #ffeef7;
-      text-shadow: 1px 1px 5px rgba(0,0,0,0.6);
-    }
+        function stopDrawing() {
+            drawing = false;
+        }
 
-    .timeNumber {
-      font-size: 1.3rem;
-      font-weight: bold;
-    }
+        function draw(e) {
+            if (!drawing) return;
+            const x = e.touches ? e.touches[0].clientX : e.clientX;
+            const y = e.touches ? e.touches[0].clientY : e.clientY;
 
-    /* NEDRE SEKTION: 50vh, men inget scroll */
-    .lowerSection {
-      width: 100%;
-      height: 50vh;
-      background: #dfdfdf;
-      color: #333;
-      box-sizing: border-box;
-      padding: 20px;
-      overflow: auto; /* Ingen scroll! Innehåll kan klippas om det är för långt */
-    }
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(x, y, 5, 0, Math.PI * 2);
+            ctx.fill();
 
-    .lowerSection h2 {
-      text-align: center;
-      margin-top: 0;
-      margin-bottom: 20px;
-      font-size: 1.6rem;
-      color: #ff4081;
-    }
+            // Skicka data till Firebase
+            push(drawingsRef, {
+                x, y, color,
+                timestamp: Date.now()
+            });
+        }
 
-    .lowerSection ul {
-      list-style: none;
-      padding: 0;
-      max-width: 600px;
-      margin: 0 auto;
-      font-size: 1rem;
-      line-height: 1.6;
-    }
-    .lowerSection li {
-      margin-bottom: 8px;
-      position: relative;
-      padding-left: 25px; 
-    }
-    .lowerSection li::before {
-      content: "❤️";
-      position: absolute;
-      left: 0;
-      top: 0;
-      transform: translateY(2px);
-    }
+        // Eventlisteners
+        canvas.addEventListener("mousedown", startDrawing);
+        canvas.addEventListener("mousemove", draw);
+        canvas.addEventListener("mouseup", stopDrawing);
+        canvas.addEventListener("touchstart", startDrawing);
+        canvas.addEventListener("touchmove", draw);
+        canvas.addEventListener("touchend", stopDrawing);
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-  </style>
+        // Hämta data i realtid
+        onValue(drawingsRef, (snapshot) => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            snapshot.forEach((child) => {
+                const { x, y, color } = child.val();
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.arc(x, y, 5, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        });
 
-  <script>
-    /* Räkna tidsskillnaden med riktiga månader (inklusive skottår). */
-    function dateDiffDetailed(start, end) {
-      let years = end.getFullYear() - start.getFullYear();
-      let months = end.getMonth() - start.getMonth();
-      let days = end.getDate() - start.getDate();
-      let hours = end.getHours() - start.getHours();
-      let minutes = end.getMinutes() - start.getMinutes();
-      let seconds = end.getSeconds() - start.getSeconds();
-
-      // Justera sekunder, minuter, timmar om negativt
-      if (seconds < 0) {
-        seconds += 60;
-        minutes--;
-      }
-      if (minutes < 0) {
-        minutes += 60;
-        hours--;
-      }
-      if (hours < 0) {
-        hours += 24;
-        days--;
-      }
-
-      // Justera dagar/månader om negativt
-      if (days < 0) {
-        months--;
-        let tempDate = new Date(end.getFullYear(), end.getMonth(), 0);
-        let daysInPrevMonth = tempDate.getDate();
-        days += daysInPrevMonth;
-      }
-      if (months < 0) {
-        months += 12;
-        years--;
-      }
-
-      return { years, months, days, hours, minutes, seconds };
-    }
-
-    function updateCounter() {
-      const startDate = new Date(2024, 5, 14); // 14 juni 2024
-      const now = new Date();
-      const diff = dateDiffDetailed(startDate, now);
-
-      // Uppdatera HTML
-      document.getElementById("loveCounter").innerHTML = `
-        <div class="counter">
-          <div><span class="timeNumber">${diff.years}</span> <span class="timeNumberY">år</span></div>
-          <div><span class="timeNumber">${diff.months}</span> <span class="timeNumberMon">månader</span></div>
-          <div><span class="timeNumber">${diff.days}</span> <span class="timeNumberD">dagar</span></div>
-          <div><span class="timeNumber">${diff.hours}</span> <span class="timeNumberH">timmar</span></div>
-          <div><span class="timeNumber">${diff.minutes}</span> <span class="timeNumberMin">minuter</span></div>
-          <div><span class="timeNumber">${diff.seconds}</span> <span class="timeNumberS">sekunder</span></div>
-        </div>
-      `;
-    }
-
-    // Eventuell service worker för PWA
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('service-worker.js')
-        .then(() => console.log("Service Worker registrerad"))
-        .catch(err => console.error(err));
-    }
-
-    window.addEventListener("load", () => {
-      updateCounter();
-      setInterval(updateCounter, 1000);
-    });
-  </script>
+        // Automatisk rensning av ritningar efter 24 timmar
+        setInterval(() => {
+            onValue(drawingsRef, (snapshot) => {
+                snapshot.forEach((child) => {
+                    if (Date.now() - child.val().timestamp > 24 * 60 * 60 * 1000) {
+                        remove(ref(db, "drawings/" + child.key));
+                    }
+                });
+            });
+        }, 60000); // Kör rensningen varje minut
+    </script>
+    <style>
+        body { margin: 0; overflow: hidden; }
+        canvas { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; }
+    </style>
 </head>
-
 <body>
-  <div class="mainContainer">
-    <!-- Övre halvan -->
-    <div id="appContainer">
-      <div id="overlay"></div>
-      <div id="content">
-        <h1>Jag Älskar Dig,<br>Sköldis❤️</h1>
-        <div id="personalNote">
-            Du är vad som behövdes i mitt liv, Jag kommer älska dig tills dagen jag dör ❤️
-        </div>
-        <div id="counterCircle">
-          <div id="loveCounter"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Nedre halvan -->
-    <div class="lowerSection">
-      <h2>100 anledningar till varför jag älskar dig</h2>
-      <ul>
-        <li>Jag älskar dina ögon.</li>
-        <li>Ditt leende gör mig alltid glad.</li>
-        <li>Din energi är fantastisk.</li>
-        <li>Dina dåliga skämt är bäst.</li>
-        <li>Jag älskar att du är min.</li>
-        <li>Jag älskar sättet du ser på mig.</li>
-        <li>Din närvaro lugnar mig.</li>
-        <li>Du är rolig utan att försöka.</li>
-        <li>Jag älskar hur du tänker.</li>
-        <li>Dina kramar slår allt.</li>
-        <li>Din personlighet är underbar.</li>
-        <li>Du förstår mig utan ord.</li>
-        <li>Jag älskar ditt huvud, så gosigt.</li>
-        <li>Din autism gör dig unik.</li>
-        <li>Dina ögonlock är supersöta.</li>
-        <li>Du är min trygghet.</li>
-        <li>Jag älskar hur du lyssnar.</li>
-        <li>Dina pussar är beroendeframkallande.</li>
-        <li>Du gör mig alltid glad.</li>
-        <li>Jag älskar din ärlighet.</li>
-        <li>Du är min favoritperson.</li>
-        <li>Din humor lyser upp allt.</li>
-        <li>Jag älskar att du är dig själv.</li>
-        <li>Du gör vardagen speciell.</li>
-        <li>Ditt skratt smittar av sig.</li>
-        <li>Jag älskar ditt lilla leende.</li>
-        <li>Din närhet är allt jag behöver.</li>
-        <li>Du stöttar mig i allt.</li>
-        <li>Jag älskar din varma röst.</li>
-        <li>Dina tankar fascinerar mig.</li>
-        <li>Du gör mig trygg.</li>
-        <li>Jag älskar ditt lugn.</li>
-        <li>Din blick säger mer än ord.</li>
-        <li>Du är aldrig tråkig.</li>
-        <li>Jag älskar din ärliga humor.</li>
-        <li>Ditt huvud är perfekt att pussa.</li>
-        <li>Du ger mig hopp.</li>
-        <li>Jag älskar din spontanitet.</li>
-        <li>Din energi smittar av sig.</li>
-        <li>Du är min bästa vän.</li>
-        <li>Jag älskar dina spontana idéer.</li>
-        <li>Din mun är så fin.</li>
-        <li>Du är min Sköldis för alltid.</li>
-        <li>Jag älskar att du är orädd.</li>
-        <li>Dina kramar känns hemma.</li>
-        <li>Du får mig att våga mer.</li>
-        <li>Jag älskar hur du tänker annorlunda.</li>
-        <li>Du är alltid äkta.</li>
-        <li>Din personlighet är en skatt.</li>
-        <li>Jag älskar din tysta styrka.</li>
-        <li>Du får mig att skratta högt.</li>
-        <li>Din autism gör dig fantastisk.</li>
-        <li>Jag älskar dina busiga ögon.</li>
-        <li>Du är bättre än knark</li>
-        <li>Du överraskar mig jämt.</li>
-        <li>Jag älskar att du är unik.</li>
-        <li>Ditt huvud är mitt favoritställe.</li>
-        <li>Du läser mig som en öppen bok.</li>
-        <li>Jag älskar dina oväntade skämt.</li>
-        <li>Du är mitt bästa lyckopiller.</li>
-        <li>Din energi gör mig levande.</li>
-        <li>Jag älskar din mjuka röst.</li>
-        <li>Dina dumma skämt är helt rätt.</li>
-        <li>Du är speciell på alla sätt.</li>
-        <li>Jag älskar ditt öppna sinne.</li>
-        <li>Din trygghet är oslagbar.</li>
-        <li>Dina tankar är spännande.</li>
-        <li>Jag älskar att vara nära dig.</li>
-        <li>Du är mitt ljus på mörka dagar.</li>
-        <li>Dina ögon är djupa och fina.</li>
-        <li>Jag älskar din lugna sida.</li>
-        <li>Din ärlighet är befriande.</li>
-        <li>Du är allt jag önskat mig.</li>
-        <li>Jag älskar din öppenhet för allt.</li>
-        <li>Dina dåliga skämt är egentligen bra.</li>
-        <li>Du gör världen roligare.</li>
-        <li>Jag älskar hur du fixar allt.</li>
-        <li>Ditt huvud är min gosplats.</li>
-        <li>Du är min Sköldis, min kärlek.</li>
-        <li>Jag älskar din positiva syn.</li>
-        <li>Dina kramar botar allt ont.</li>
-        <li>Du är alltid där för mig.</li>
-        <li>Jag älskar din unika humor.</li>
-        <li>Din närvaro gör mig lugn.</li>
-        <li>Du ser livet på ett bra sätt.</li>
-        <li>Jag älskar hur du bara är du.</li>
-        <li>Dina leenden gör mig varm.</li>
-        <li>Din energi driver mig framåt.</li>
-        <li>Jag älskar ditt ärliga sinne.</li>
-        <li>Du lyfter mig när jag är nere.</li>
-        <li>Dina ögon är rena kärleken.</li>
-        <li>Jag älskar att du är min Sköldis.</li>
-        <li>Du gör mig starkare.</li>
-        <li>Din humor är klockren.</li>
-        <li>Jag älskar att du inte är som alla andra.</li>
-        <li>Ditt huvud är världens bästa.</li>
-        <li>Du är min största glädje.</li>
-        <li>Jag älskar hur du är full av liv.</li>
-        <li>Dina kramar är mina favoriter.</li>
-        <li>Du är allt för mig.</li>        
-      </ul>
-    </div>
-  </div>
 </body>
 </html>
