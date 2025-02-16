@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="sv">
 <head>
@@ -72,9 +70,8 @@
             // Skapa canvas
             const canvas = document.createElement("canvas");
             document.body.appendChild(canvas);
-            const ctx = canvas.get
+            const ctx = canvas.getContext("2d"); // Skapa ctx här, undvik duplicering
 
-            const ctx = canvas.getContext("2d");
             let drawing = false;
             let lastX = 0;
             let lastY = 0;
