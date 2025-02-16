@@ -4,10 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rita i realtid</title>
+    <link rel="manifest" href="manifest.json">
     <script type="module">
+        // Importera Firebase
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getDatabase, ref, onValue, push, remove } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+        import { getDatabase, ref, push, remove, onValue } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
+        // Firebase-konfiguration
         const firebaseConfig = {
             apiKey: "AIzaSyBDMAPvvCb1MFFWgVb_8GTpQYwMSAR9uBU",
             authDomain: "mimminoah-ee32a.firebaseapp.com",
@@ -18,64 +21,46 @@
             appId: "1:598999784847:web:3de2bb39f019deeca27ffa"
         };
 
+        // Initiera Firebase
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
         const drawingsRef = ref(db, "drawings");
-        const colorsRef = ref(db, "colors");
 
-        const colors = {
-            noah: "#1E90FF",
-            mimmi: "#FFB6C1"
-        };
-
-        let selectedUser = localStorage.getItem("selectedUser");
-        let selectedColor = localStorage.getItem("selectedColor");
+        let user = localStorage.getItem("user");
+        let color = "";
+        const colors = { "Noah": "#FF5733", "Mimmi": "#A569BD" };
+        let totalDrawnPixels = 0;
+        const maxPixels = 10000;
 
         function chooseUser() {
             document.body.innerHTML = "<h2>Vem är du?</h2>";
-            const noahButton = document.createElement("button");
-            noahButton.textContent = "Noah";
-            noahButton.style.backgroundColor = colors.noah;
-            noahButton.onclick = () => {
-                selectedUser = "noah";
-                selectedColor = colors.noah;
-                localStorage.setItem("selectedUser", selectedUser);
-                localStorage.setItem("selectedColor", selectedColor);
-                push(colorsRef, { [selectedUser]: selectedColor });
-                startCanvas();
-            };
-
-            const mimmiButton = document.createElement("button");
-            mimmiButton.textContent = "Mimmi";
-            mimmiButton.style.backgroundColor = colors.mimmi;
-            mimmiButton.onclick = () => {
-                selectedUser = "mimmi";
-                selectedColor = colors.mimmi;
-                localStorage.setItem("selectedUser", selectedUser);
-                localStorage.setItem("selectedColor", selectedColor);
-                push(colorsRef, { [selectedUser]: selectedColor });
-                startCanvas();
-            };
-
-            document.body.appendChild(noahButton);
-            document.body.appendChild(mimmiButton);
+            ["Noah", "Mimmi"].forEach(name => {
+                let btn = document.createElement("button");
+                btn.textContent = name;
+                btn.style.backgroundColor = colors[name];
+                btn.style.width = "100px";
+                btn.style.height = "50px";
+                btn.style.margin = "10px";
+                btn.onclick = () => {
+                    localStorage.setItem("user", name);
+                    user = name;
+                    color = colors[name];
+                    startCanvas();
+                };
+                document.body.appendChild(btn);
+            });
         }
 
         function startCanvas() {
-            document.body.innerHTML = "";
-            const canvas = document.createElement("canvas");
-            document.body.appendChild(canvas);
+            document.body.innerHTML = `
+                <div id="counter"></div>
+                <button id="clearBtn">Rensa</button>
+                <canvas id="canvas"></canvas>
+            `;
+
+            const canvas = document.getElementById("canvas");
             const ctx = canvas.getContext("2d");
-
-            let drawing = false;
-            let lastX = 0;
-            let lastY = 0;
-            let points = [];
-            let lineWidth = 5;
-            const color = selectedColor;
-            let totalLength = 0;
-
-            const MAX_LENGTH = 1000; // Max längd innan gamla linjer raderas
+            const clearBtn = document.getElementById("clearBtn");
 
             function resizeCanvas() {
                 canvas.width = window.innerWidth;
@@ -84,100 +69,55 @@
             resizeCanvas();
             window.addEventListener("resize", resizeCanvas);
 
-            const sizeControl = document.createElement("input");
-            sizeControl.type = "range";
-            sizeControl.min = 1;
-            sizeControl.max = 20;
-            sizeControl.value = lineWidth;
-            sizeControl.style.position = "absolute";
-            sizeControl.style.top = "10px";
-            sizeControl.style.left = "10px";
-            sizeControl.addEventListener("input", (e) => {
-                lineWidth = e.target.value;
-            });
-            document.body.appendChild(sizeControl);
-
-            const clearButton = document.createElement("button");
-            clearButton.textContent = "Ta bort mina ritningar";
-            clearButton.style.position = "absolute";
-            clearButton.style.top = "10px";
-            clearButton.style.left = "100px";
-            clearButton.onclick = () => {
-                const userDrawingsRef = ref(db, `drawings/${selectedUser}`);
-                remove(userDrawingsRef);
-            };
-            document.body.appendChild(clearButton);
+            let drawing = false;
+            let lastX = 0, lastY = 0;
 
             function startDrawing(e) {
                 drawing = true;
-                lastX = e.touches ? e.touches[0].clientX : e.clientX;
-                lastY = e.touches ? e.touches[0].clientY : e.clientY;
-                points = [{ x: lastX, y: lastY }];
+                [lastX, lastY] = [e.clientX || e.touches[0].clientX, e.clientY || e.touches[0].clientY];
             }
 
             function stopDrawing() {
                 drawing = false;
-                if (points.length > 1) {
-                    push(drawingsRef, {
-                        user: selectedUser,
-                        points,
-                        color,
-                        lineWidth,
-                        timestamp: Date.now()
-                    });
-                }
             }
 
             function draw(e) {
-                if (!drawing) return;
+                if (!drawing || totalDrawnPixels > maxPixels) return;
 
-                let x = e.touches ? e.touches[0].clientX : e.clientX;
-                let y = e.touches ? e.touches[0].clientY : e.clientY;
-                points.push({ x, y });
-
-                // Beräkna längd på ritningen
-                const dx = x - lastX;
-                const dy = y - lastY;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                totalLength += distance;
-
-                // Om längden överskrider MAX_LENGTH, ta bort gamla linjer
-                if (totalLength > MAX_LENGTH) {
-                    removeOldDrawings();
-                }
+                let x = e.clientX || e.touches[0].clientX;
+                let y = e.clientY || e.touches[0].clientY;
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 5;
+                ctx.lineCap = "round";
 
                 ctx.beginPath();
                 ctx.moveTo(lastX, lastY);
                 ctx.lineTo(x, y);
-                ctx.lineWidth = lineWidth;
-                ctx.strokeStyle = color;
-                ctx.lineCap = "round";
                 ctx.stroke();
 
-                lastX = x;
-                lastY = y;
+                push(drawingsRef, { x, y, user, color, timestamp: Date.now() });
+
+                totalDrawnPixels += Math.hypot(x - lastX, y - lastY);
+                if (totalDrawnPixels > maxPixels) cleanOldDrawings();
+
+                [lastX, lastY] = [x, y];
             }
 
-            function removeOldDrawings() {
+            function cleanOldDrawings() {
                 onValue(drawingsRef, (snapshot) => {
-                    let drawingsToRemove = [];
-                    snapshot.forEach((child) => {
-                        const points = child.val().points;
-                        let length = 0;
-                        for (let i = 1; i < points.length; i++) {
-                            const dx = points[i].x - points[i - 1].x;
-                            const dy = points[i].y - points[i - 1].y;
-                            length += Math.sqrt(dx * dx + dy * dy);
-                        }
-                        if (length > MAX_LENGTH) {
-                            drawingsToRemove.push(child.key);
-                        }
-                    });
+                    let keys = Object.keys(snapshot.val() || {});
+                    if (keys.length > 10) remove(ref(db, `drawings/${keys[0]}`));
+                });
+            }
 
-                    drawingsToRemove.forEach((key) => {
-                        remove(ref(db, `drawings/${key}`));
+            function clearDrawings() {
+                onValue(drawingsRef, (snapshot) => {
+                    snapshot.forEach((child) => {
+                        if (child.val().user === user) remove(ref(db, `drawings/${child.key}`));
                     });
                 });
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                totalDrawnPixels = 0;
             }
 
             canvas.addEventListener("mousedown", startDrawing);
@@ -186,39 +126,40 @@
             canvas.addEventListener("touchstart", startDrawing);
             canvas.addEventListener("touchmove", draw);
             canvas.addEventListener("touchend", stopDrawing);
+            clearBtn.addEventListener("click", clearDrawings);
 
             onValue(drawingsRef, (snapshot) => {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 snapshot.forEach((child) => {
-                    const { points, color, lineWidth } = child.val();
-                    if (child.val().user !== selectedUser) return;
+                    const { x, y, color } = child.val();
+                    ctx.fillStyle = color;
                     ctx.beginPath();
-                    points.forEach((point, index) => {
-                        if (index === 0) {
-                            ctx.moveTo(point.x, point.y);
-                        } else {
-                            ctx.lineTo(point.x, point.y);
-                        }
-                    });
-                    ctx.lineWidth = lineWidth;
-                    ctx.strokeStyle = color;
-                    ctx.lineCap = "round";
-                    ctx.stroke();
+                    ctx.arc(x, y, 3, 0, Math.PI * 2);
+                    ctx.fill();
                 });
             });
+
+            function updateCounter() {
+                const startDate = new Date("2024-06-14T12:00:00Z");
+                const now = new Date();
+                const diff = now - startDate;
+                const months = Math.floor(diff / (1000 * 60 * 60 * 24 * 30));
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24) % 30);
+                const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+                const minutes = Math.floor((diff / (1000 * 60)) % 60);
+                document.getElementById("counter").innerText = `${months} mån, ${days} dagar, ${hours}h, ${minutes}m`;
+            }
+            setInterval(updateCounter, 60000);
+            updateCounter();
         }
 
-        if (selectedUser && selectedColor) {
-            startCanvas();
-        } else {
-            chooseUser();
-        }
+        user ? startCanvas() : chooseUser();
     </script>
     <style>
         body { margin: 0; overflow: hidden; display: flex; justify-content: center; align-items: center; flex-direction: column; }
         canvas { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; }
-        button { cursor: pointer; margin: 5px; padding: 10px 20px; font-size: 18px; border: none; color: white; }
-        input[type="range"] { margin: 10px; }
+        button { position: fixed; bottom: 10px; padding: 10px 20px; background: #333; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        #counter { position: fixed; top: 10px; color: white; font-size: 18px; }
     </style>
 </head>
 <body>
