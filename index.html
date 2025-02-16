@@ -4,13 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rita i realtid</title>
-    <link rel="manifest" href="manifest.json">
     <script type="module">
-        // Importera Firebase
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getDatabase, ref, onValue, push, remove } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
-        // Firebase-konfiguration
         const firebaseConfig = {
             apiKey: "AIzaSyBDMAPvvCb1MFFWgVb_8GTpQYwMSAR9uBU",
             authDomain: "mimminoah-ee32a.firebaseapp.com",
@@ -21,22 +18,19 @@
             appId: "1:598999784847:web:3de2bb39f019deeca27ffa"
         };
 
-        // Initiera Firebase
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
         const drawingsRef = ref(db, "drawings");
         const colorsRef = ref(db, "colors");
 
-        // Definiera färger
         const colors = {
-            noah: "#1E90FF", // Blå färg för Noah
-            mimmi: "#FFB6C1" // Pastellfärg för Mimmi
+            noah: "#1E90FF",
+            mimmi: "#FFB6C1"
         };
 
         let selectedUser = localStorage.getItem("selectedUser");
         let selectedColor = localStorage.getItem("selectedColor");
 
-        // Välj användare och färg
         function chooseUser() {
             document.body.innerHTML = "<h2>Vem är du?</h2>";
             const noahButton = document.createElement("button");
@@ -67,11 +61,8 @@
             document.body.appendChild(mimmiButton);
         }
 
-        // Starta ritningen
         function startCanvas() {
-            document.body.innerHTML = ""; // Rensa sidan
-
-            // Skapa canvas
+            document.body.innerHTML = "";
             const canvas = document.createElement("canvas");
             document.body.appendChild(canvas);
             const ctx = canvas.getContext("2d");
@@ -82,8 +73,10 @@
             let points = [];
             let lineWidth = 5;
             const color = selectedColor;
+            let totalLength = 0;
 
-            // Anpassa canvas till skärmen
+            const MAX_LENGTH = 1000; // Max längd innan gamla linjer raderas
+
             function resizeCanvas() {
                 canvas.width = window.innerWidth;
                 canvas.height = window.innerHeight;
@@ -91,7 +84,6 @@
             resizeCanvas();
             window.addEventListener("resize", resizeCanvas);
 
-            // Ändra storlek på pennan
             const sizeControl = document.createElement("input");
             sizeControl.type = "range";
             sizeControl.min = 1;
@@ -105,20 +97,17 @@
             });
             document.body.appendChild(sizeControl);
 
-            // Rensa ritningar
             const clearButton = document.createElement("button");
             clearButton.textContent = "Ta bort mina ritningar";
             clearButton.style.position = "absolute";
             clearButton.style.top = "10px";
             clearButton.style.left = "100px";
             clearButton.onclick = () => {
-                // Ta bort alla ritningar som tillhör den nuvarande användaren
                 const userDrawingsRef = ref(db, `drawings/${selectedUser}`);
                 remove(userDrawingsRef);
             };
             document.body.appendChild(clearButton);
 
-            // Ritningsfunktioner
             function startDrawing(e) {
                 drawing = true;
                 lastX = e.touches ? e.touches[0].clientX : e.clientX;
@@ -146,6 +135,17 @@
                 let y = e.touches ? e.touches[0].clientY : e.clientY;
                 points.push({ x, y });
 
+                // Beräkna längd på ritningen
+                const dx = x - lastX;
+                const dy = y - lastY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                totalLength += distance;
+
+                // Om längden överskrider MAX_LENGTH, ta bort gamla linjer
+                if (totalLength > MAX_LENGTH) {
+                    removeOldDrawings();
+                }
+
                 ctx.beginPath();
                 ctx.moveTo(lastX, lastY);
                 ctx.lineTo(x, y);
@@ -158,7 +158,28 @@
                 lastY = y;
             }
 
-            // Event listeners för ritning
+            function removeOldDrawings() {
+                onValue(drawingsRef, (snapshot) => {
+                    let drawingsToRemove = [];
+                    snapshot.forEach((child) => {
+                        const points = child.val().points;
+                        let length = 0;
+                        for (let i = 1; i < points.length; i++) {
+                            const dx = points[i].x - points[i - 1].x;
+                            const dy = points[i].y - points[i - 1].y;
+                            length += Math.sqrt(dx * dx + dy * dy);
+                        }
+                        if (length > MAX_LENGTH) {
+                            drawingsToRemove.push(child.key);
+                        }
+                    });
+
+                    drawingsToRemove.forEach((key) => {
+                        remove(ref(db, `drawings/${key}`));
+                    });
+                });
+            }
+
             canvas.addEventListener("mousedown", startDrawing);
             canvas.addEventListener("mousemove", draw);
             canvas.addEventListener("mouseup", stopDrawing);
@@ -166,12 +187,11 @@
             canvas.addEventListener("touchmove", draw);
             canvas.addEventListener("touchend", stopDrawing);
 
-            // Hämta data i realtid
             onValue(drawingsRef, (snapshot) => {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 snapshot.forEach((child) => {
                     const { points, color, lineWidth } = child.val();
-                    if (child.val().user !== selectedUser) return; // Endast den egna användaren
+                    if (child.val().user !== selectedUser) return;
                     ctx.beginPath();
                     points.forEach((point, index) => {
                         if (index === 0) {
@@ -186,24 +206,11 @@
                     ctx.stroke();
                 });
             });
-
-            // Rensa gamla ritningar efter en viss gräns
-            setInterval(() => {
-                onValue(drawingsRef, (snapshot) => {
-                    snapshot.forEach((child) => {
-                        if (Date.now() - child.val().timestamp > 24 * 60 * 60 * 1000) {
-                            remove(ref(db, `drawings/${child.key}`));
-                        }
-                    });
-                });
-            }, 60000); // Kör rensningen varje minut
         }
 
-        // Om användaren redan har valt användare, starta canvas direkt
         if (selectedUser && selectedColor) {
             startCanvas();
         } else {
-            // Annars visa användarval
             chooseUser();
         }
     </script>
