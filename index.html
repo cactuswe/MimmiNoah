@@ -8,7 +8,7 @@
     <script type="module">
         // Importera Firebase
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getDatabase, ref, push, remove, onValue } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+        import { getDatabase, ref, set, push, remove, onValue } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
         // Firebase-konfiguration
         const firebaseConfig = {
@@ -25,42 +25,75 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
         const drawingsRef = ref(db, "drawings");
+        const usersRef = ref(db, "users");
 
-        let user = localStorage.getItem("user");
-        let color = "";
-        const colors = { "Noah": "#FF5733", "Mimmi": "#A569BD" };
-        let totalDrawnPixels = 0;
-        const maxPixels = 10000;
+        // Användare och färger
+        const users = {
+            "Noah": "#3498db",  // Blå
+            "Mimmi": "#e91e63"  // Rosa
+        };
 
-        function chooseUser() {
+        let user = null;
+        let color = null;
+        let drawnPixels = 0;
+        const maxPixels = 6000; // Begränsning av ritade pixlar
+
+        function selectUser() {
             document.body.innerHTML = "<h2>Vem är du?</h2>";
-            ["Noah", "Mimmi"].forEach(name => {
+            Object.keys(users).forEach(name => {
                 let btn = document.createElement("button");
                 btn.textContent = name;
-                btn.style.backgroundColor = colors[name];
-                btn.style.width = "100px";
-                btn.style.height = "50px";
-                btn.style.margin = "10px";
+                btn.style.backgroundColor = users[name];
                 btn.onclick = () => {
-                    localStorage.setItem("user", name);
                     user = name;
-                    color = colors[name];
-                    startCanvas();
+                    color = users[name];
+                    checkUser();
                 };
                 document.body.appendChild(btn);
+            });
+        }
+
+        function checkUser() {
+            onValue(usersRef, (snapshot) => {
+                const data = snapshot.val() || {};
+                if (Object.values(data).includes(user)) {
+                    alert("Användaren är redan inloggad!");
+                    location.reload();
+                } else {
+                    set(ref(db, `users/${user}`), user);
+                    startCanvas();
+                }
             });
         }
 
         function startCanvas() {
             document.body.innerHTML = `
                 <div id="counter"></div>
-                <button id="clearBtn">Rensa</button>
+                <button id="clear">Rensa mina ritningar</button>
                 <canvas id="canvas"></canvas>
             `;
 
+            // ** TIDSRÄKNARE **
+            function updateCounter() {
+                const startTime = new Date("2024-06-14T12:00:00Z");
+                const now = new Date();
+                const diff = now - startTime;
+                
+                const months = Math.floor(diff / (1000 * 60 * 60 * 24 * 30.44));
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24)) % 30;
+                const hours = Math.floor(diff / (1000 * 60 * 60)) % 24;
+                const minutes = Math.floor(diff / (1000 * 60)) % 60;
+                const seconds = Math.floor(diff / 1000) % 60;
+
+                document.getElementById("counter").innerText = 
+                    `${months} månader, ${days} dagar, ${hours} timmar, ${minutes} minuter, ${seconds} sekunder`;
+            }
+            setInterval(updateCounter, 1000);
+            updateCounter();
+
+            // ** CANVAS RITNING **
             const canvas = document.getElementById("canvas");
             const ctx = canvas.getContext("2d");
-            const clearBtn = document.getElementById("clearBtn");
 
             function resizeCanvas() {
                 canvas.width = window.innerWidth;
@@ -70,7 +103,7 @@
             window.addEventListener("resize", resizeCanvas);
 
             let drawing = false;
-            let lastX = 0, lastY = 0;
+            let lastX, lastY;
 
             function startDrawing(e) {
                 drawing = true;
@@ -82,84 +115,84 @@
             }
 
             function draw(e) {
-                if (!drawing || totalDrawnPixels > maxPixels) return;
+                if (!drawing || drawnPixels > maxPixels) return;
 
-                let x = e.clientX || e.touches[0].clientX;
-                let y = e.clientY || e.touches[0].clientY;
-                ctx.strokeStyle = color;
-                ctx.lineWidth = 5;
-                ctx.lineCap = "round";
+                const x = e.clientX || e.touches[0].clientX;
+                const y = e.clientY || e.touches[0].clientY;
 
                 ctx.beginPath();
                 ctx.moveTo(lastX, lastY);
                 ctx.lineTo(x, y);
+                ctx.lineWidth = 5;
+                ctx.strokeStyle = color;
+                ctx.lineCap = "round";
                 ctx.stroke();
 
-                push(drawingsRef, { x, y, user, color, timestamp: Date.now() });
-
-                totalDrawnPixels += Math.hypot(x - lastX, y - lastY);
-                if (totalDrawnPixels > maxPixels) cleanOldDrawings();
-
+                drawnPixels += Math.sqrt((x - lastX) ** 2 + (y - lastY) ** 2);
                 [lastX, lastY] = [x, y];
-            }
 
-            function cleanOldDrawings() {
-                onValue(drawingsRef, (snapshot) => {
-                    let keys = Object.keys(snapshot.val() || {});
-                    if (keys.length > 10) remove(ref(db, `drawings/${keys[0]}`));
-                });
-            }
+                // Spara till Firebase
+                push(drawingsRef, { x, y, color, user });
 
-            function clearDrawings() {
-                onValue(drawingsRef, (snapshot) => {
-                    snapshot.forEach((child) => {
-                        if (child.val().user === user) remove(ref(db, `drawings/${child.key}`));
-                    });
-                });
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                totalDrawnPixels = 0;
+                // Radera gamla ritningar om maxgränsen nås
+                if (drawnPixels > maxPixels) {
+                    onValue(drawingsRef, (snapshot) => {
+                        const keys = Object.keys(snapshot.val() || {});
+                        remove(ref(db, `drawings/${keys[0]}`));
+                    }, { onlyOnce: true });
+                }
             }
 
             canvas.addEventListener("mousedown", startDrawing);
             canvas.addEventListener("mousemove", draw);
             canvas.addEventListener("mouseup", stopDrawing);
+            canvas.addEventListener("mouseleave", stopDrawing);
             canvas.addEventListener("touchstart", startDrawing);
             canvas.addEventListener("touchmove", draw);
             canvas.addEventListener("touchend", stopDrawing);
-            clearBtn.addEventListener("click", clearDrawings);
 
+            // ** LADDA RITNINGAR I REALTID **
             onValue(drawingsRef, (snapshot) => {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 snapshot.forEach((child) => {
                     const { x, y, color } = child.val();
-                    ctx.fillStyle = color;
                     ctx.beginPath();
                     ctx.arc(x, y, 3, 0, Math.PI * 2);
+                    ctx.fillStyle = color;
                     ctx.fill();
                 });
             });
 
-            function updateCounter() {
-                const startDate = new Date("2024-06-14T12:00:00Z");
-                const now = new Date();
-                const diff = now - startDate;
-                const months = Math.floor(diff / (1000 * 60 * 60 * 24 * 30));
-                const days = Math.floor(diff / (1000 * 60 * 60 * 24) % 30);
-                const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-                const minutes = Math.floor((diff / (1000 * 60)) % 60);
-                document.getElementById("counter").innerText = `${months} mån, ${days} dagar, ${hours}h, ${minutes}m`;
-            }
-            setInterval(updateCounter, 60000);
-            updateCounter();
+            // ** RENSNING AV EGNA RITNINGAR **
+            document.getElementById("clear").addEventListener("click", () => {
+                onValue(drawingsRef, (snapshot) => {
+                    snapshot.forEach((child) => {
+                        if (child.val().user === user) {
+                            remove(ref(db, `drawings/${child.key}`));
+                        }
+                    });
+                }, { onlyOnce: true });
+            });
+
+            // ** AUTOMATISK RENSNING EFTER 24 TIMMAR **
+            setInterval(() => {
+                onValue(drawingsRef, (snapshot) => {
+                    snapshot.forEach((child) => {
+                        if (Date.now() - child.val().timestamp > 86400000) {
+                            remove(ref(db, `drawings/${child.key}`));
+                        }
+                    });
+                });
+            }, 60000);
         }
 
-        user ? startCanvas() : chooseUser();
+        selectUser();
     </script>
     <style>
-        body { margin: 0; overflow: hidden; display: flex; justify-content: center; align-items: center; flex-direction: column; }
+        body { margin: 0; overflow: hidden; text-align: center; }
         canvas { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; }
-        button { position: fixed; bottom: 10px; padding: 10px 20px; background: #333; color: white; border: none; border-radius: 5px; cursor: pointer; }
-        #counter { position: fixed; top: 10px; color: white; font-size: 18px; }
+        button { margin: 10px; padding: 10px; font-size: 16px; cursor: pointer; }
+        #counter { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); font-size: 18px; font-weight: bold; }
     </style>
 </head>
 <body>
