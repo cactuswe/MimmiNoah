@@ -21,24 +21,21 @@
       color: #333;
       background: #fff;
       overflow: hidden;
-      position: relative;
     }
 
     .container {
       position: absolute;
       width: 100%;
       height: 100%;
-      top: 0;
-      left: 0;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       text-align: center;
       transition: transform 0.5s ease-in-out;
+      padding: 20px;
     }
 
-    /* Första sidan */
     #page1 {
       background: #dfdfdf;
     }
@@ -49,9 +46,8 @@
     }
 
     .upperSection {
-      padding: 10px;
+      padding: 20px;
       font-size: 1.2rem;
-      background-image: url("din_bild.jpg");
     }
 
     .lowerSection {
@@ -59,17 +55,6 @@
       margin-top: 20px;
     }
 
-    .lowerSection ul {
-      list-style: none;
-      padding: 0;
-      font-size: 1.1rem;
-    }
-
-    .lowerSection li {
-      margin-bottom: 8px;
-    }
-
-    /* Andra sidan */
     #page2 {
       background: #fff;
       position: absolute;
@@ -89,15 +74,24 @@
       margin-bottom: 20px;
     }
 
-    /* Meddelanden */
+    /* Meddelandeområde */
+    #messageBoard {
+      width: 90%;
+      height: 50vh;
+      overflow-y: auto;
+      padding: 10px;
+      background: rgba(255, 192, 203, 0.2);
+      border-radius: 10px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    }
+
     .message {
-      position: absolute;
       background: rgba(255, 192, 203, 0.8);
-      padding: 10px 15px;
+      padding: 10px;
       border-radius: 8px;
       font-size: 1.2rem;
-      white-space: nowrap;
-      cursor: grab;
+      margin: 5px;
+      text-align: left;
     }
   </style>
 </head>
@@ -121,99 +115,69 @@
     </div>
   </div>
 
-  <!-- Andra sidan (räknare & meddelanden) -->
+  <!-- Andra sidan -->
   <div id="page2" class="container">
     <h1>Vi har varit tillsammans i:</h1>
     <div id="counterCircle">
       <div id="loveCounter"></div>
     </div>
-    <p>Tryck vart som helst för att lägga till ett meddelande ❤️</p>
+    <p>Tryck för att lägga till ett meddelande ❤️</p>
+    
+    <div id="messageBoard"></div>
   </div>
 
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
+
   <script>
-    let startX;
-    let currentPage = 1;
+    const firebaseConfig = {
+      apiKey: "DIN_API_KEY",
+      authDomain: "DITT_PROJEKT.firebaseapp.com",
+      projectId: "DITT_PROJEKT_ID",
+      storageBucket: "DITT_PROJEKT.appspot.com",
+      messagingSenderId: "DIN_SENDER_ID",
+      appId: "DIN_APP_ID"
+    };
 
-    function switchPage() {
-      if (currentPage === 1) {
-        document.getElementById("page1").style.transform = "translateX(-100%)";
-        document.getElementById("page2").style.transform = "translateX(-100%)";
-        currentPage = 2;
-      } else {
-        document.getElementById("page1").style.transform = "translateX(0)";
-        document.getElementById("page2").style.transform = "translateX(0)";
-        currentPage = 1;
-      }
-    }
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
-    document.addEventListener("touchstart", function(event) {
-      startX = event.touches[0].clientX;
-    }, false);
-
-    document.addEventListener("touchend", function(event) {
-      let endX = event.changedTouches[0].clientX;
-      let diffX = startX - endX;
-
-      if (diffX > 50) { 
-        switchPage();
-      }
-    }, false);
-
-    function updateCounter() {
-      const startDate = new Date(2024, 5, 14);
-      const now = new Date();
-      const diff = dateDiffDetailed(startDate, now);
-
-      document.getElementById("loveCounter").innerHTML = `
-        <strong>${diff.years}</strong> år<br>
-        <strong>${diff.months}</strong> månader<br>
-        <strong>${diff.days}</strong> dagar<br>
-        <strong>${diff.hours}</strong> timmar<br>
-        <strong>${diff.minutes}</strong> minuter<br>
-        <strong>${diff.seconds}</strong> sekunder
-      `;
-    }
-
-    function dateDiffDetailed(start, end) {
-      let years = end.getFullYear() - start.getFullYear();
-      let months = end.getMonth() - start.getMonth();
-      let days = end.getDate() - start.getDate();
-      let hours = end.getHours() - start.getHours();
-      let minutes = end.getMinutes() - start.getMinutes();
-      let seconds = end.getSeconds() - start.getSeconds();
-
-      if (seconds < 0) { seconds += 60; minutes--; }
-      if (minutes < 0) { minutes += 60; hours--; }
-      if (hours < 0) { hours += 24; days--; }
-      if (days < 0) { months--; days += new Date(end.getFullYear(), end.getMonth(), 0).getDate(); }
-      if (months < 0) { months += 12; years--; }
-
-      return { years, months, days, hours, minutes, seconds };
-    }
-
-    setInterval(updateCounter, 1000);
-    updateCounter();
-
-    document.getElementById("page2").addEventListener("click", function(event) {
+    document.getElementById("page2").addEventListener("click", async () => {
       let message = prompt("Skriv ett gulligt meddelande:");
       if (message) {
-        createMessage(event.clientX, event.clientY, message);
+        const timestamp = new Date();
+        await db.collection("messages").add({
+          text: message,
+          createdAt: timestamp
+        });
       }
     });
 
-    function createMessage(x, y, text) {
-      let msg = document.createElement("div");
-      msg.classList.add("message");
-      msg.style.left = x + "px";
-      msg.style.top = y + "px";
-      msg.textContent = text;
+    async function loadMessages() {
+      const now = new Date();
+      const messagesRef = db.collection("messages");
+      const snapshot = await messagesRef.orderBy("createdAt").get();
 
-      document.getElementById("page2").appendChild(msg);
+      document.getElementById("messageBoard").innerHTML = "";
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        const messageTime = data.createdAt.toDate();
+        const diffHours = (now - messageTime) / (1000 * 60 * 60);
 
-      setTimeout(() => {
-        msg.remove();
-      }, 3 * 60 * 60 * 1000);
+        if (diffHours < 24) {
+          const msgElement = document.createElement("div");
+          msgElement.classList.add("message");
+          msgElement.textContent = data.text;
+          document.getElementById("messageBoard").appendChild(msgElement);
+        } else {
+          messagesRef.doc(doc.id).delete();
+        }
+      });
     }
+
+    setInterval(loadMessages, 5000);
+    loadMessages();
   </script>
 </body>
 </html>
