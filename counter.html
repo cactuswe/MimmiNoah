@@ -9,6 +9,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="manifest" href="manifest.json">
 
   <style>
     html, body {
@@ -65,7 +66,7 @@
       height: 50vh;
       background: url('din-bild.jpg') center/cover no-repeat;
       background-position-y: -170px; 
-      background-position-x: -50px;
+      background-position-x: 50px;
       background-size: 200%;
     }
 
@@ -143,8 +144,8 @@
       position: absolute;
       inset: 0;
       z-index: 0;
-      background: rgba(0, 0, 0, 0.2);
-      backdrop-filter: blur(2px);
+      background: rgba(0, 0, 0, 0.45);
+      backdrop-filter: blur(3px);
     }
   </style>
 </head>
