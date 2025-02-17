@@ -2,7 +2,7 @@
 <html lang="sv">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>❤️</title>
 
   <!-- iOS WebApp-stöd -->
@@ -27,11 +27,9 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      text-align: center;
       flex-direction: column;
+      text-align: center;
       touch-action: none;
-      -webkit-touch-callout: none;
-      -webkit-user-select: none;
       user-select: none;
     }
 
@@ -55,8 +53,6 @@
       left: 0;
       width: 100%;
       height: 100%;
-      display: flex;
-      flex-wrap: wrap;
       pointer-events: none;
     }
 
@@ -68,6 +64,7 @@
       touch-action: none;
       cursor: grab;
       transition: transform 0.1s ease-out;
+      pointer-events: auto;
     }
 
     .message.placed {
@@ -168,9 +165,7 @@
       });
 
       document.addEventListener("touchend", () => {
-        if (isDragging) {
-          isDragging = false;
-        }
+        isDragging = false;
       });
 
       msgElement.addEventListener("gesturechange", (e) => {
@@ -201,7 +196,7 @@
           const data = child.val();
           const timePassed = now - data.timestamp;
 
-          if (timePassed < 3 * 60 * 60 * 1000) { // 3 timmar
+          if (timePassed < 3 * 60 * 60 * 1000) {
             createMessageElement(data.text, data.x, data.y, false);
           } else {
             db.ref("messages").child(child.key).remove();
