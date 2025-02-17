@@ -2,14 +2,15 @@
 <html lang="sv">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scaleable=no">
   <title>❤️</title>
 
   <!-- iOS WebApp-stöd -->
-  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">    
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <link rel="apple-touch-icon" href="icon-192.png">
   <link rel="manifest" href="manifest.json">
+  <script defer src="push.js"></script>
 
   <style>
     html, body {
@@ -21,21 +22,24 @@
       color: #333;
       background: #fff;
       overflow: hidden;
+      position: relative;
     }
 
     .container {
       position: absolute;
       width: 100%;
       height: 100%;
+      top: 0;
+      left: 0;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       text-align: center;
       transition: transform 0.5s ease-in-out;
-      padding: 20px;
     }
 
+    /* Första sidan */
     #page1 {
       background: #dfdfdf;
     }
@@ -45,16 +49,68 @@
       text-shadow: 2px 2px 6px rgba(0,0,0,0.3);
     }
 
+    #personalNote {
+      margin-bottom: 20px;
+      font-size: 1rem;
+      font-style: italic;
+      max-width: 600px;
+      line-height: 1.4;
+      color: #fff;
+    }
+
     .upperSection {
-      padding: 20px;
+      color: #fff;
+      padding: 10px;
       font-size: 1.2rem;
+      width: 100%;
+      height: 50vh;
+      background: url('din-bild.jpg') center/cover no-repeat;
+      background-position-y: -170px;
+      background-size: 200%;
     }
 
     .lowerSection {
-      width: 80%;
-      margin-top: 20px;
+      width: 100%;
+      height: 50vh;
+      background: #dfdfdf;
+      color: #333;
+      padding: 20px;
+      overflow: auto;
+      text-align: left;
     }
 
+    .lowerSection h2 {
+      text-align: center;
+      margin-top: 0;
+      margin-bottom: 20px;
+      font-size: 1.6rem;
+      color: #ff4081;
+    }
+
+    .lowerSection ul {
+      list-style: none;
+      padding: 0;
+      max-width: 600px;
+      margin: 0 auto;
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+
+    .lowerSection li {
+      margin-bottom: 8px;
+      position: relative;
+      padding-left: 25px;
+    }
+
+    .lowerSection li::before {
+      content: "❤️";
+      position: absolute;
+      left: 0;
+      top: 0;
+      transform: translateY(2px);
+    }
+
+    /* Andra sidan */
     #page2 {
       background: #fff;
       position: absolute;
@@ -62,36 +118,39 @@
     }
 
     #counterCircle {
-      width: 50vw;
+      width: 100vw;
       height: 50vw;
-      border-radius: 50%;
       background: #f4f4f4;
       box-shadow: 0 0 10px rgba(0,0,0,0.2);
       display: flex;
       align-items: center;
+		text-align: left;
       justify-content: center;
       font-size: 1.3rem;
       margin-bottom: 20px;
     }
 
-    /* Meddelandeområde */
-    #messageBoard {
-      width: 90%;
-      height: 50vh;
-      overflow-y: auto;
-      padding: 10px;
-      background: rgba(255, 192, 203, 0.2);
-      border-radius: 10px;
-      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    /* Push-notiser */
+    #notificationForm {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: 80%;
+      max-width: 400px;
     }
 
-    .message {
-      background: rgba(255, 192, 203, 0.8);
+    input, button {
       padding: 10px;
-      border-radius: 8px;
-      font-size: 1.2rem;
-      margin: 5px;
-      text-align: left;
+      font-size: 1rem;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      background: #ff4081;
+      color: white;
+      border: none;
+      cursor: pointer;
     }
   </style>
 </head>
@@ -101,83 +160,114 @@
   <!-- Första sidan -->
   <div id="page1" class="container">
     <div class="upperSection">
-      <h1>Jag Älskar Dig, Sköldis❤️</h1>
-      <p>Du är det finaste jag har och jag vill att du ska veta varför ❤️</p>
+      <h1>Jag Älskar Dig,<br>Sköldis❤️</h1>
+      <div id="personalNote">
+        Du är vad som behövdes i mitt liv, Jag kommer älska dig tills dagen jag dör ❤️
+      </div>
     </div>
     <div class="lowerSection">
       <h2>100+ anledningar till varför jag älskar dig</h2>
       <ul>
         <li>Jag älskar dina ögon</li>
         <li>Jag älskar ditt leende</li>
-        <li>Jag älskar att du alltid ser det bästa i människor</li>
-        <li>Jag älskar att du är min</li>
+        <li>Jag älskar din energi</li>
+        <li>Jag älskar dina dåliga skämt</li>
+        <li>Du är allt för mig Mimmi, Jag älskar allt med dig.</li>
       </ul>
     </div>
   </div>
 
-  <!-- Andra sidan -->
+  <!-- Andra sidan (räknare & meddelanden) -->
   <div id="page2" class="container">
     <h1>Vi har varit tillsammans i:</h1>
     <div id="counterCircle">
       <div id="loveCounter"></div>
     </div>
-    <p>Tryck för att lägga till ett meddelande ❤️</p>
-    
-    <div id="messageBoard"></div>
+
+    <!-- Formulär för att skicka push-notiser -->
+    <h2>Skicka en gullig notis ❤️</h2>
+    <form id="notificationForm">
+        <input type="text" id="title" placeholder="Titel" required>
+        <input type="text" id="message" placeholder="Meddelande" required>
+        <button type="submit">Skicka Notis</button>
+    </form>
   </div>
 
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
-
   <script>
-    const firebaseConfig = {
-      apiKey: "DIN_API_KEY",
-      authDomain: "DITT_PROJEKT.firebaseapp.com",
-      projectId: "DITT_PROJEKT_ID",
-      storageBucket: "DITT_PROJEKT.appspot.com",
-      messagingSenderId: "DIN_SENDER_ID",
-      appId: "DIN_APP_ID"
-    };
+    let startX;
+    let currentPage = 1;
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-
-    document.getElementById("page2").addEventListener("click", async () => {
-      let message = prompt("Skriv ett gulligt meddelande:");
-      if (message) {
-        const timestamp = new Date();
-        await db.collection("messages").add({
-          text: message,
-          createdAt: timestamp
-        });
+    function switchPage() {
+      if (currentPage === 1) {
+        document.getElementById("page1").style.transform = "translateX(-100%)";
+        document.getElementById("page2").style.transform = "translateX(-100%)";
+        currentPage = 2;
+      } else {
+        document.getElementById("page1").style.transform = "translateX(0)";
+        document.getElementById("page2").style.transform = "translateX(0)";
+        currentPage = 1;
       }
-    });
-
-    async function loadMessages() {
-      const now = new Date();
-      const messagesRef = db.collection("messages");
-      const snapshot = await messagesRef.orderBy("createdAt").get();
-
-      document.getElementById("messageBoard").innerHTML = "";
-      snapshot.forEach(doc => {
-        const data = doc.data();
-        const messageTime = data.createdAt.toDate();
-        const diffHours = (now - messageTime) / (1000 * 60 * 60);
-
-        if (diffHours < 24) {
-          const msgElement = document.createElement("div");
-          msgElement.classList.add("message");
-          msgElement.textContent = data.text;
-          document.getElementById("messageBoard").appendChild(msgElement);
-        } else {
-          messagesRef.doc(doc.id).delete();
-        }
-      });
     }
 
-    setInterval(loadMessages, 5000);
-    loadMessages();
+    document.addEventListener("touchstart", function(event) {
+      startX = event.touches[0].clientX;
+    }, false);
+
+    document.addEventListener("touchend", function(event) {
+      let endX = event.changedTouches[0].clientX;
+      let diffX = startX - endX;
+
+      if (diffX > 50) { 
+        switchPage();
+      }
+    }, false);
+
+    function updateCounter() {
+      const startDate = new Date(2024, 5, 14);
+      const now = new Date();
+      const diff = dateDiffDetailed(startDate, now);
+
+      document.getElementById("loveCounter").innerHTML = `
+        <strong>${diff.years}</strong> år<br>
+        <strong>${diff.months}</strong> månader<br>
+        <strong>${diff.weeks}</strong> veckor<br>
+        <strong>${diff.days}</strong> dagar<br>
+        <strong>${diff.hours}</strong> timmar<br>
+        <strong>${diff.minutes}</strong> minuter<br>
+      `;
+    }
+
+    function dateDiffDetailed(start, end) {
+      let diff = end - start;
+      let years = Math.floor(diff / (1000 * 60 * 60 * 24 * 365));
+      let months = Math.floor(diff / (1000 * 60 * 60 * 24 * 30) % 12);
+      let weeks = Math.floor(diff / (1000 * 60 * 60 * 24 * 7) % 4);
+      let days = Math.floor(diff / (1000 * 60 * 60 * 24) % 7);
+      let hours = end.getHours() - start.getHours();
+      let minutes = end.getMinutes() - start.getMinutes();
+      let seconds = end.getSeconds() - start.getSeconds();
+
+      return { years, months, weeks, days, hours, minutes, seconds };
+    }
+
+    setInterval(updateCounter, 1000);
+    updateCounter();
+
+    // PUSH-NOTIS INTEGRATION
+    document.getElementById("notificationForm").addEventListener("submit", function(e) {
+        e.preventDefault();
+        const title = document.getElementById("title").value;
+        const message = document.getElementById("message").value;
+
+        fetch("https://din-backend-url.onrender.com/sendNotification", {
+            method: "POST",
+            body: JSON.stringify({ title, body: message }),
+            headers: { "Content-Type": "application/json" }
+        });
+
+        alert("Notis skickad till din partner! ❤️");
+    });
+
   </script>
 </body>
 </html>
