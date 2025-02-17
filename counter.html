@@ -10,10 +10,6 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="apple-touch-icon" href="icon-192.png">
 
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js"></script>
-
   <style>
     html, body {
       margin: 0;
@@ -22,76 +18,157 @@
       width: 100vw;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       color: #333;
-      overflow: hidden;
       background: #fff;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .container {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      flex-direction: column;
       text-align: center;
-      touch-action: none;
-      user-select: none;
+      transition: transform 0.5s ease-in-out;
+    }
+
+    /* Första sidan */
+    #page1 {
+      background: #dfdfdf;
     }
 
     h1 {
-      font-size: 1.8rem;
-      margin-bottom: 10px;
-      font-weight: 600;
+      font-size: 2rem;
+      text-shadow: 2px 2px 6px rgba(0,0,0,0.3);
     }
 
-    #counter {
+    .upperSection {
+      padding: 10px;
       font-size: 1.2rem;
-      background: rgba(0, 0, 0, 0.05);
-      padding: 15px;
-      border-radius: 12px;
+    }
+
+    .lowerSection {
+      width: 80%;
+      margin-top: 20px;
+    }
+
+    .lowerSection ul {
+      list-style: none;
+      padding: 0;
+      font-size: 1.1rem;
+    }
+
+    .lowerSection li {
+      margin-bottom: 8px;
+    }
+
+    /* Andra sidan */
+    #page2 {
+      background: #fff;
+      position: absolute;
+      left: 100%;
+    }
+
+    #counterCircle {
+      width: 50vw;
+      height: 50vw;
+      border-radius: 50%;
+      background: #f4f4f4;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
       margin-bottom: 20px;
     }
 
-    #messagesContainer {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-    }
-
+    /* Meddelanden */
     .message {
       position: absolute;
-      font-size: 1.5rem;
-      font-weight: bold;
-      color: #ff2d55;
-      touch-action: none;
+      background: rgba(255, 192, 203, 0.8);
+      padding: 10px 15px;
+      border-radius: 8px;
+      font-size: 1.2rem;
+      white-space: nowrap;
       cursor: grab;
-      transition: transform 0.1s ease-out;
-      pointer-events: auto;
-    }
-
-    .message.placed {
-      cursor: default;
-      pointer-events: none;
     }
   </style>
+</head>
+
+<body>
+
+  <!-- Första sidan -->
+  <div id="page1" class="container">
+    <div class="upperSection">
+      <h1>Jag Älskar Dig, Sköldis❤️</h1>
+      <p>Du är det finaste jag har och jag vill att du ska veta varför ❤️</p>
+    </div>
+    <div class="lowerSection">
+      <h2>100+ anledningar till varför jag älskar dig</h2>
+      <ul>
+        <li>Jag älskar dina ögon</li>
+        <li>Jag älskar ditt leende</li>
+        <li>Jag älskar att du alltid ser det bästa i människor</li>
+        <li>Jag älskar att du är min</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Andra sidan (räknare & meddelanden) -->
+  <div id="page2" class="container">
+    <h1>Vi har varit tillsammans i:</h1>
+    <div id="counterCircle">
+      <div id="loveCounter"></div>
+    </div>
+    <p>Tryck vart som helst för att lägga till ett meddelande ❤️</p>
+  </div>
 
   <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      updateCounter();
-      loadMessages();
-      setInterval(updateCounter, 1000);
-    });
+    let startX;
+    let currentPage = 1;
+
+    function switchPage() {
+      if (currentPage === 1) {
+        document.getElementById("page1").style.transform = "translateX(-100%)";
+        document.getElementById("page2").style.transform = "translateX(-100%)";
+        currentPage = 2;
+      } else {
+        document.getElementById("page1").style.transform = "translateX(0)";
+        document.getElementById("page2").style.transform = "translateX(0)";
+        currentPage = 1;
+      }
+    }
+
+    document.addEventListener("touchstart", function(event) {
+      startX = event.touches[0].clientX;
+    }, false);
+
+    document.addEventListener("touchend", function(event) {
+      let endX = event.changedTouches[0].clientX;
+      let diffX = startX - endX;
+
+      if (diffX > 50) { 
+        switchPage();
+      }
+    }, false);
 
     function updateCounter() {
       const startDate = new Date(2024, 5, 14);
       const now = new Date();
       const diff = dateDiffDetailed(startDate, now);
 
-      document.getElementById("counter").innerHTML = `
-        <div><strong>${diff.years}</strong> år</div>
-        <div><strong>${diff.months}</strong> månader</div>
-        <div><strong>${diff.days}</strong> dagar</div>
-        <div><strong>${diff.hours}</strong> timmar</div>
-        <div><strong>${diff.minutes}</strong> minuter</div>
-        <div><strong>${diff.seconds}</strong> sekunder</div>
+      document.getElementById("loveCounter").innerHTML = `
+        <strong>${diff.years}</strong> år<br>
+        <strong>${diff.months}</strong> månader<br>
+        <strong>${diff.days}</strong> dagar<br>
+        <strong>${diff.hours}</strong> timmar<br>
+        <strong>${diff.minutes}</strong> minuter<br>
+        <strong>${diff.seconds}</strong> sekunder
       `;
     }
 
@@ -112,103 +189,29 @@
       return { years, months, days, hours, minutes, seconds };
     }
 
-    // Firebase-konfiguration
-    const firebaseConfig = {
-      apiKey: "DIN-API-KEY",
-      authDomain: "DITT-PROJEKT.firebaseapp.com",
-      databaseURL: "https://DITT-PROJEKT.firebaseio.com",
-      projectId: "DITT-PROJEKT",
-      storageBucket: "DITT-PROJEKT.appspot.com",
-      messagingSenderId: "DIN-SENDER-ID",
-      appId: "DIN-APP-ID"
-    };
+    setInterval(updateCounter, 1000);
+    updateCounter();
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-
-    document.addEventListener("click", (e) => {
-      const x = e.clientX;
-      const y = e.clientY;
-
-      let message = prompt("Skriv ett gulligt meddelande ❤️");
-
-      if (message && message.trim() !== "") {
-        createMessageElement(message, x, y, true);
+    document.getElementById("page2").addEventListener("click", function(event) {
+      let message = prompt("Skriv ett gulligt meddelande:");
+      if (message) {
+        createMessage(event.clientX, event.clientY, message);
       }
     });
 
-    function createMessageElement(text, x, y, isNew) {
-      const msgElement = document.createElement("div");
-      msgElement.classList.add("message");
-      msgElement.style.left = `${x}px`;
-      msgElement.style.top = `${y}px`;
-      msgElement.textContent = text;
-      document.getElementById("messagesContainer").appendChild(msgElement);
+    function createMessage(x, y, text) {
+      let msg = document.createElement("div");
+      msg.classList.add("message");
+      msg.style.left = x + "px";
+      msg.style.top = y + "px";
+      msg.textContent = text;
 
-      let scale = 1;
-      let posX = x;
-      let posY = y;
-      let isDragging = false;
+      document.getElementById("page2").appendChild(msg);
 
-      msgElement.addEventListener("touchstart", (e) => {
-        if (msgElement.classList.contains("placed")) return;
-        isDragging = true;
-      });
-
-      document.addEventListener("touchmove", (e) => {
-        if (!isDragging || e.touches.length > 1) return;
-        e.preventDefault();
-        posX = e.touches[0].clientX;
-        posY = e.touches[0].clientY;
-        msgElement.style.left = `${posX}px`;
-        msgElement.style.top = `${posY}px`;
-      });
-
-      document.addEventListener("touchend", () => {
-        isDragging = false;
-      });
-
-      msgElement.addEventListener("gesturechange", (e) => {
-        if (msgElement.classList.contains("placed")) return;
-        e.preventDefault();
-        scale = Math.max(0.5, Math.min(3, e.scale));
-        msgElement.style.transform = `scale(${scale})`;
-      });
-
-      msgElement.addEventListener("dblclick", () => {
-        msgElement.classList.add("placed");
-        if (isNew) {
-          const timestamp = Date.now();
-          db.ref("messages").push({ text, x: posX, y: posY, scale, timestamp });
-        }
-      });
-    }
-
-    function loadMessages() {
-      const messagesContainer = document.getElementById("messagesContainer");
-      const messagesRef = db.ref("messages");
-
-      messagesRef.on("value", (snapshot) => {
-        messagesContainer.innerHTML = "";
-        const now = Date.now();
-
-        snapshot.forEach((child) => {
-          const data = child.val();
-          const timePassed = now - data.timestamp;
-
-          if (timePassed < 3 * 60 * 60 * 1000) {
-            createMessageElement(data.text, data.x, data.y, false);
-          } else {
-            db.ref("messages").child(child.key).remove();
-          }
-        });
-      });
+      setTimeout(() => {
+        msg.remove();
+      }, 3 * 60 * 60 * 1000);
     }
   </script>
-</head>
-<body>
-  <h1>Vi har varit tillsammans i...</h1>
-  <div id="counter"></div>
-  <div id="messagesContainer"></div>
 </body>
 </html>
