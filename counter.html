@@ -2,7 +2,7 @@
 <html lang="sv">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>❤️</title>
 
   <!-- iOS WebApp-stöd -->
@@ -21,97 +21,58 @@
       height: 100vh;
       width: 100vw;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      color: #fff;
+      color: #333;
       overflow: hidden;
-      background: #333;
-    }
-
-    .container {
+      background: #fff;
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
-      height: 100vh;
       text-align: center;
-      opacity: 0;
-      animation: slideInFromRight 0.5s ease-out forwards;
+      flex-direction: column;
+      touch-action: none;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
     }
 
     h1 {
-      margin-bottom: 20px;
-      font-size: 2rem;
+      font-size: 1.8rem;
+      margin-bottom: 10px;
+      font-weight: 600;
     }
 
-    #counterBox {
-      background: rgba(255, 255, 255, 0.2);
-      padding: 20px;
-      border-radius: 10px;
+    #counter {
       font-size: 1.2rem;
+      background: rgba(0, 0, 0, 0.05);
+      padding: 15px;
+      border-radius: 12px;
       margin-bottom: 20px;
     }
 
-    #messageBox {
-      width: 80%;
-      height: 100px;
-      padding: 10px;
-      border-radius: 10px;
-      background: rgba(255, 255, 255, 0.1);
-      color: #fff;
-      border: none;
-      resize: none;
-      font-size: 1rem;
-      outline: none;
-      transition: background 0.3s;
+    #messagesContainer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-wrap: wrap;
+      pointer-events: none;
     }
 
-    #messageBox:focus {
-      background: rgba(255, 255, 255, 0.2);
+    .message {
+      position: absolute;
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #ff2d55;
+      touch-action: none;
+      cursor: grab;
+      transition: transform 0.1s ease-out;
     }
 
-    #sendMessage {
-      margin-top: 10px;
-      padding: 10px 20px;
-      background: #ff4081;
-      border: none;
-      color: white;
-      font-size: 1rem;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-
-    #messages {
-      margin-top: 20px;
-      width: 80%;
-      max-height: 200px;
-      overflow-y: auto;
-      background: rgba(255, 255, 255, 0.1);
-      padding: 10px;
-      border-radius: 10px;
-      text-align: left;
-    }
-
-    /* Insvepning från höger */
-    @keyframes slideInFromRight {
-      from {
-        opacity: 0;
-        transform: translateX(100%);
-      }
-      to {
-        opacity: 1;
-        transform: translateX(0);
-      }
-    }
-
-    /* Utsvepning till höger */
-    @keyframes slideOutToRight {
-      from {
-        opacity: 1;
-        transform: translateX(0);
-      }
-      to {
-        opacity: 0;
-        transform: translateX(100%);
-      }
+    .message.placed {
+      cursor: default;
+      pointer-events: none;
     }
   </style>
 
@@ -127,7 +88,7 @@
       const now = new Date();
       const diff = dateDiffDetailed(startDate, now);
 
-      document.getElementById("counterBox").innerHTML = `
+      document.getElementById("counter").innerHTML = `
         <div><strong>${diff.years}</strong> år</div>
         <div><strong>${diff.months}</strong> månader</div>
         <div><strong>${diff.days}</strong> dagar</div>
@@ -154,18 +115,6 @@
       return { years, months, days, hours, minutes, seconds };
     }
 
-    let startX;
-    document.addEventListener("touchstart", (e) => startX = e.touches[0].clientX, false);
-
-    document.addEventListener("touchend", (e) => {
-      let diffX = e.changedTouches[0].clientX - startX;
-
-      if (diffX > 50) { 
-        document.body.style.animation = "slideOutToRight 0.5s ease-out";
-        setTimeout(() => window.location.href = "index.html", 500);
-      }
-    });
-
     // Firebase-konfiguration
     const firebaseConfig = {
       apiKey: "DIN-API-KEY",
@@ -180,32 +129,80 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    function sendMessage() {
-      const messageBox = document.getElementById("messageBox");
-      const message = messageBox.value.trim();
+    document.addEventListener("click", (e) => {
+      const x = e.clientX;
+      const y = e.clientY;
 
-      if (message) {
-        const timestamp = Date.now();
-        db.ref("messages").push({ message, timestamp });
-        messageBox.value = "";
+      let message = prompt("Skriv ett gulligt meddelande ❤️");
+
+      if (message && message.trim() !== "") {
+        createMessageElement(message, x, y, true);
       }
+    });
+
+    function createMessageElement(text, x, y, isNew) {
+      const msgElement = document.createElement("div");
+      msgElement.classList.add("message");
+      msgElement.style.left = `${x}px`;
+      msgElement.style.top = `${y}px`;
+      msgElement.textContent = text;
+      document.getElementById("messagesContainer").appendChild(msgElement);
+
+      let scale = 1;
+      let posX = x;
+      let posY = y;
+      let isDragging = false;
+
+      msgElement.addEventListener("touchstart", (e) => {
+        if (msgElement.classList.contains("placed")) return;
+        isDragging = true;
+      });
+
+      document.addEventListener("touchmove", (e) => {
+        if (!isDragging || e.touches.length > 1) return;
+        e.preventDefault();
+        posX = e.touches[0].clientX;
+        posY = e.touches[0].clientY;
+        msgElement.style.left = `${posX}px`;
+        msgElement.style.top = `${posY}px`;
+      });
+
+      document.addEventListener("touchend", () => {
+        if (isDragging) {
+          isDragging = false;
+        }
+      });
+
+      msgElement.addEventListener("gesturechange", (e) => {
+        if (msgElement.classList.contains("placed")) return;
+        e.preventDefault();
+        scale = Math.max(0.5, Math.min(3, e.scale));
+        msgElement.style.transform = `scale(${scale})`;
+      });
+
+      msgElement.addEventListener("dblclick", () => {
+        msgElement.classList.add("placed");
+        if (isNew) {
+          const timestamp = Date.now();
+          db.ref("messages").push({ text, x: posX, y: posY, scale, timestamp });
+        }
+      });
     }
 
     function loadMessages() {
-      const messagesContainer = document.getElementById("messages");
+      const messagesContainer = document.getElementById("messagesContainer");
       const messagesRef = db.ref("messages");
 
       messagesRef.on("value", (snapshot) => {
         messagesContainer.innerHTML = "";
         const now = Date.now();
+
         snapshot.forEach((child) => {
           const data = child.val();
           const timePassed = now - data.timestamp;
 
-          if (timePassed < 6 * 60 * 60 * 1000) {
-            const msgElement = document.createElement("div");
-            msgElement.textContent = `❤️ ${data.message}`;
-            messagesContainer.appendChild(msgElement);
+          if (timePassed < 3 * 60 * 60 * 1000) { // 3 timmar
+            createMessageElement(data.text, data.x, data.y, false);
           } else {
             db.ref("messages").child(child.key).remove();
           }
@@ -213,15 +210,10 @@
       });
     }
   </script>
-
 </head>
 <body>
-  <div class="container">
-    <h1>Vi har varit tillsammans i...</h1>
-    <div id="counterBox"></div>
-    <textarea id="messageBox" placeholder="Lämna ett gulligt meddelande ❤️"></textarea>
-    <button id="sendMessage" onclick="sendMessage()">Skicka</button>
-    <div id="messages"></div>
-  </div>
+  <h1>Vi har varit tillsammans i...</h1>
+  <div id="counter"></div>
+  <div id="messagesContainer"></div>
 </body>
 </html>
