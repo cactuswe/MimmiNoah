@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>❤️</title>
+
+  <!-- iOS WebApp-stöd -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="icon-192.png">
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js"></script>
+
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      width: 100vw;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: #fff;
+      overflow: hidden;
+      background: #333;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      text-align: center;
+      opacity: 0;
+      animation: slideInFromRight 0.5s ease-out forwards;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+      font-size: 2rem;
+    }
+
+    #counterBox {
+      background: rgba(255, 255, 255, 0.2);
+      padding: 20px;
+      border-radius: 10px;
+      font-size: 1.2rem;
+      margin-bottom: 20px;
+    }
+
+    #messageBox {
+      width: 80%;
+      height: 100px;
+      padding: 10px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      border: none;
+      resize: none;
+      font-size: 1rem;
+      outline: none;
+      transition: background 0.3s;
+    }
+
+    #messageBox:focus {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    #sendMessage {
+      margin-top: 10px;
+      padding: 10px 20px;
+      background: #ff4081;
+      border: none;
+      color: white;
+      font-size: 1rem;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    #messages {
+      margin-top: 20px;
+      width: 80%;
+      max-height: 200px;
+      overflow-y: auto;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 10px;
+      border-radius: 10px;
+      text-align: left;
+    }
+
+    /* Insvepning från höger */
+    @keyframes slideInFromRight {
+      from {
+        opacity: 0;
+        transform: translateX(100%);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    /* Utsvepning till höger */
+    @keyframes slideOutToRight {
+      from {
+        opacity: 1;
+        transform: translateX(0);
+      }
+      to {
+        opacity: 0;
+        transform: translateX(100%);
+      }
+    }
+  </style>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      updateCounter();
+      loadMessages();
+      setInterval(updateCounter, 1000);
+    });
+
+    function updateCounter() {
+      const startDate = new Date(2024, 5, 14);
+      const now = new Date();
+      const diff = dateDiffDetailed(startDate, now);
+
+      document.getElementById("counterBox").innerHTML = `
+        <div><strong>${diff.years}</strong> år</div>
+        <div><strong>${diff.months}</strong> månader</div>
+        <div><strong>${diff.days}</strong> dagar</div>
+        <div><strong>${diff.hours}</strong> timmar</div>
+        <div><strong>${diff.minutes}</strong> minuter</div>
+        <div><strong>${diff.seconds}</strong> sekunder</div>
+      `;
+    }
+
+    function dateDiffDetailed(start, end) {
+      let years = end.getFullYear() - start.getFullYear();
+      let months = end.getMonth() - start.getMonth();
+      let days = end.getDate() - start.getDate();
+      let hours = end.getHours() - start.getHours();
+      let minutes = end.getMinutes() - start.getMinutes();
+      let seconds = end.getSeconds() - start.getSeconds();
+
+      if (seconds < 0) { seconds += 60; minutes--; }
+      if (minutes < 0) { minutes += 60; hours--; }
+      if (hours < 0) { hours += 24; days--; }
+      if (days < 0) { months--; days += new Date(end.getFullYear(), end.getMonth(), 0).getDate(); }
+      if (months < 0) { months += 12; years--; }
+
+      return { years, months, days, hours, minutes, seconds };
+    }
+
+    let startX;
+    document.addEventListener("touchstart", (e) => startX = e.touches[0].clientX, false);
+
+    document.addEventListener("touchend", (e) => {
+      let diffX = e.changedTouches[0].clientX - startX;
+
+      if (diffX > 50) { 
+        document.body.style.animation = "slideOutToRight 0.5s ease-out";
+        setTimeout(() => window.location.href = "index.html", 500);
+      }
+    });
+
+    // Firebase-konfiguration
+    const firebaseConfig = {
+      apiKey: "DIN-API-KEY",
+      authDomain: "DITT-PROJEKT.firebaseapp.com",
+      databaseURL: "https://DITT-PROJEKT.firebaseio.com",
+      projectId: "DITT-PROJEKT",
+      storageBucket: "DITT-PROJEKT.appspot.com",
+      messagingSenderId: "DIN-SENDER-ID",
+      appId: "DIN-APP-ID"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    function sendMessage() {
+      const messageBox = document.getElementById("messageBox");
+      const message = messageBox.value.trim();
+
+      if (message) {
+        const timestamp = Date.now();
+        db.ref("messages").push({ message, timestamp });
+        messageBox.value = "";
+      }
+    }
+
+    function loadMessages() {
+      const messagesContainer = document.getElementById("messages");
+      const messagesRef = db.ref("messages");
+
+      messagesRef.on("value", (snapshot) => {
+        messagesContainer.innerHTML = "";
+        const now = Date.now();
+        snapshot.forEach((child) => {
+          const data = child.val();
+          const timePassed = now - data.timestamp;
+
+          if (timePassed < 6 * 60 * 60 * 1000) {
+            const msgElement = document.createElement("div");
+            msgElement.textContent = `❤️ ${data.message}`;
+            messagesContainer.appendChild(msgElement);
+          } else {
+            db.ref("messages").child(child.key).remove();
+          }
+        });
+      });
+    }
+  </script>
+
+</head>
+<body>
+  <div class="container">
+    <h1>Vi har varit tillsammans i...</h1>
+    <div id="counterBox"></div>
+    <textarea id="messageBox" placeholder="Lämna ett gulligt meddelande ❤️"></textarea>
+    <button id="sendMessage" onclick="sendMessage()">Skicka</button>
+    <div id="messages"></div>
+  </div>
+</body>
+</html>
