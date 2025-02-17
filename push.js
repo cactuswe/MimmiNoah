@@ -1,14 +1,13 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js";
-
 const firebaseConfig = {
-    apiKey: "DIN_API_KEY",
-    authDomain: "DITT_PROJECT.firebaseapp.com",
-    projectId: "DITT_PROJECT",
-    storageBucket: "DITT_PROJECT.appspot.com",
-    messagingSenderId: "DIN_SENDER_ID",
-    appId: "DIN_APP_ID",
-    vapidKey: "DIN_VAPID_KEY"
+  apiKey: "AIzaSyBDMAPvvCb1MFFWgVb_8GTpQYwMSAR9uBU",
+  authDomain: "mimminoah-ee32a.firebaseapp.com",
+  databaseURL: "https://mimminoah-ee32a-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "mimminoah-ee32a",
+  storageBucket: "mimminoah-ee32a.firebasestorage.app",
+  messagingSenderId: "598999784847",
+  appId: "1:598999784847:web:3de2bb39f019deeca27ffa"
 };
 
 const app = initializeApp(firebaseConfig);
