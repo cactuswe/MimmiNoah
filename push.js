@@ -30,7 +30,7 @@ window.onload = function() {
 
 // Skicka token till backend
 function saveTokenToDatabase(token) {
-    fetch("https://din-backend-url.onrender.com/saveToken", {
+    fetch("https://notisswrver.bananfjonkis.repl.co/saveToken", {
         method: "POST",
         body: JSON.stringify({ token }),
         headers: { "Content-Type": "application/json" }
@@ -48,7 +48,7 @@ document.getElementById("notificationForm").addEventListener("submit", function(
     const title = document.getElementById("title").value;
     const message = document.getElementById("message").value;
 
-    fetch("https://din-backend-url.onrender.com/sendNotification", {
+    fetch("https://notisswrver.bananfjonkis.repl.co/sendNotification", {
         method: "POST",
         body: JSON.stringify({ title, body: message }),
         headers: { "Content-Type": "application/json" }
