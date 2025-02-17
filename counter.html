@@ -135,6 +135,13 @@
       white-space: nowrap;
       cursor: grab;
     }
+    .overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      background: rgba(0, 0, 0, 0.2);
+      background-filter: blur(2px);
+    }
   </style>
 </head>
 
@@ -143,10 +150,12 @@
   <!-- Första sidan -->
   <div id="page1" class="container">
     <div class="upperSection">
+      <div class="overlay">
         <h1>Jag Älskar Dig,<br>Sköldis❤️</h1>
         <div id="personalNote">
           Du är vad som behövdes i mitt liv, Jag kommer älska dig tills dagen jag dör ❤️
         </div>
+      </div>
     </div>
     <div class="lowerSection">
       <h2>100+ anledningar till varför jag älskar dig</h2>
