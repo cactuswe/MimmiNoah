@@ -1,14 +1,217 @@
 <!DOCTYPE html>
 <html lang="sv">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>❤️</title>
-    <link rel="manifest" href="manifest.json">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>❤️</title>
+
+  <!-- iOS WebApp-stöd -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="icon-192.png">
+
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      width: 100vw;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: #333;
+      background: #fff;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .container {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      transition: transform 0.5s ease-in-out;
+    }
+
+    /* Första sidan */
+    #page1 {
+      background: #dfdfdf;
+    }
+
+    h1 {
+      font-size: 2rem;
+      text-shadow: 2px 2px 6px rgba(0,0,0,0.3);
+    }
+
+    .upperSection {
+      padding: 10px;
+      font-size: 1.2rem;
+    }
+
+    .lowerSection {
+      width: 80%;
+      margin-top: 20px;
+    }
+
+    .lowerSection ul {
+      list-style: none;
+      padding: 0;
+      font-size: 1.1rem;
+    }
+
+    .lowerSection li {
+      margin-bottom: 8px;
+    }
+
+    /* Andra sidan */
+    #page2 {
+      background: #fff;
+      position: absolute;
+      left: 100%;
+    }
+
+    #counterCircle {
+      width: 50vw;
+      height: 50vw;
+      border-radius: 50%;
+      background: #f4f4f4;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      margin-bottom: 20px;
+    }
+
+    /* Meddelanden */
+    .message {
+      position: absolute;
+      background: rgba(255, 192, 203, 0.8);
+      padding: 10px 15px;
+      border-radius: 8px;
+      font-size: 1.2rem;
+      white-space: nowrap;
+      cursor: grab;
+    }
+  </style>
 </head>
+
 <body>
 
+  <!-- Första sidan -->
+  <div id="page1" class="container">
+    <div class="upperSection">
+      <h1>Jag Älskar Dig, Sköldis❤️</h1>
+      <p>Du är det finaste jag har och jag vill att du ska veta varför ❤️</p>
+    </div>
+    <div class="lowerSection">
+      <h2>100+ anledningar till varför jag älskar dig</h2>
+      <ul>
+        <li>Jag älskar dina ögon</li>
+        <li>Jag älskar ditt leende</li>
+        <li>Jag älskar att du alltid ser det bästa i människor</li>
+        <li>Jag älskar att du är min</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Andra sidan (räknare & meddelanden) -->
+  <div id="page2" class="container">
+    <h1>Vi har varit tillsammans i:</h1>
+    <div id="counterCircle">
+      <div id="loveCounter"></div>
+    </div>
+    <p>Tryck vart som helst för att lägga till ett meddelande ❤️</p>
+  </div>
+
+  <script>
+    let startX;
+    let currentPage = 1;
+
+    function switchPage() {
+      if (currentPage === 1) {
+        document.getElementById("page1").style.transform = "translateX(-100%)";
+        document.getElementById("page2").style.transform = "translateX(-100%)";
+        currentPage = 2;
+      } else {
+        document.getElementById("page1").style.transform = "translateX(0)";
+        document.getElementById("page2").style.transform = "translateX(0)";
+        currentPage = 1;
+      }
+    }
+
+    document.addEventListener("touchstart", function(event) {
+      startX = event.touches[0].clientX;
+    }, false);
+
+    document.addEventListener("touchend", function(event) {
+      let endX = event.changedTouches[0].clientX;
+      let diffX = startX - endX;
+
+      if (diffX > 50) { 
+        switchPage();
+      }
+    }, false);
+
+    function updateCounter() {
+      const startDate = new Date(2024, 5, 14);
+      const now = new Date();
+      const diff = dateDiffDetailed(startDate, now);
+
+      document.getElementById("loveCounter").innerHTML = `
+        <strong>${diff.years}</strong> år<br>
+        <strong>${diff.months}</strong> månader<br>
+        <strong>${diff.days}</strong> dagar<br>
+        <strong>${diff.hours}</strong> timmar<br>
+        <strong>${diff.minutes}</strong> minuter<br>
+        <strong>${diff.seconds}</strong> sekunder
+      `;
+    }
+
+    function dateDiffDetailed(start, end) {
+      let years = end.getFullYear() - start.getFullYear();
+      let months = end.getMonth() - start.getMonth();
+      let days = end.getDate() - start.getDate();
+      let hours = end.getHours() - start.getHours();
+      let minutes = end.getMinutes() - start.getMinutes();
+      let seconds = end.getSeconds() - start.getSeconds();
+
+      if (seconds < 0) { seconds += 60; minutes--; }
+      if (minutes < 0) { minutes += 60; hours--; }
+      if (hours < 0) { hours += 24; days--; }
+      if (days < 0) { months--; days += new Date(end.getFullYear(), end.getMonth(), 0).getDate(); }
+      if (months < 0) { months += 12; years--; }
+
+      return { years, months, days, hours, minutes, seconds };
+    }
+
+    setInterval(updateCounter, 1000);
+    updateCounter();
+
+    document.getElementById("page2").addEventListener("click", function(event) {
+      let message = prompt("Skriv ett gulligt meddelande:");
+      if (message) {
+        createMessage(event.clientX, event.clientY, message);
+      }
+    });
+
+    function createMessage(x, y, text) {
+      let msg = document.createElement("div");
+      msg.classList.add("message");
+      msg.style.left = x + "px";
+      msg.style.top = y + "px";
+      msg.textContent = text;
+
+      document.getElementById("page2").appendChild(msg);
+
+      setTimeout(() => {
+        msg.remove();
+      }, 3 * 60 * 60 * 1000);
+    }
+  </script>
 </body>
 </html>
