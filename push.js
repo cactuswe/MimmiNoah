@@ -7,7 +7,8 @@ const firebaseConfig = {
   projectId: "mimminoah-ee32a",
   storageBucket: "mimminoah-ee32a.firebasestorage.app",
   messagingSenderId: "598999784847",
-  appId: "1:598999784847:web:3de2bb39f019deeca27ffa"
+  appId: "1:598999784847:web:3de2bb39f019deeca27ffa",
+  VAPID: "BAnbjMacqfE54KpSE1CV2Vf_mvY2zf7umIFTh8WKnO3lnNG0BkMbY8GNvU-vpmJDK8k7PyUmY7LdZUbxuzNM0ys"
 };
 
 const app = initializeApp(firebaseConfig);
