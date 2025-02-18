@@ -6,11 +6,25 @@
   <title>Skicka Notiser</title>
   <link rel="manifest" href="manifest.json">
   <script>
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/sw.js')
-          .then(reg => console.log('Service Worker registrerad!', reg))
-          .catch(err => console.error('Service Worker error:', err));
-    }
+    if ('serviceWorker' in navigator && 'PushManager' in window) {
+    navigator.serviceWorker.register('/sw.js')
+        .then(reg => {
+            console.log("✅ Service Worker registrerad!", reg);
+            return reg.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: "DIN_PUBLIC_VAPID_KEY"
+            });
+        })
+        .then(subscription => {
+            console.log("✅ Push-prenumeration klar!", subscription);
+            fetch('/subscribe', {
+                method: 'POST',
+                body: JSON.stringify(subscription),
+                headers: { 'Content-Type': 'application/json' }
+            });
+        })
+        .catch(err => console.error("❌ Service Worker misslyckades", err));
+}
   </script>
 </head>
 <body>
