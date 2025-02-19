@@ -128,30 +128,25 @@
             top: 0;
             right: 0;
         }
-.swiper-container {
-    width: 100vw;
-    overflow: hidden;
-    position: relative;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
+        .swiper-container {
+            width: 100%;
+            overflow: hidden;
+            padding: 20px 0;
+        }
 
-.swiper-wrapper {
-    display: flex;
-    justify-content: space-evenly;
-    transition: transform 0.3s ease-in-out;
-    width: 300vw; /* Viktigt! Använd inte 300% */
-}
+        .swiper-wrapper {
+            display: flex;
+            align-items: center;
+        }
 
-.swiper-slide {
-    min-width: 100vw; /* Säkerställer att varje slide tar hela bredden */
-    text-align: center;
-    padding: 20px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
+        .swiper-slide {
+            width: 80%; /* Gör slides mindre än viewport för att skapa utrymme runt */
+            margin: 0 auto; /* Centrerar varje slide */
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
     </style>
 </head>
 <body>
