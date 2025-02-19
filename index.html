@@ -200,6 +200,25 @@
                 prevEl: '.swiper-button-prev'
             }
         });
+        let currentIndex = 0;
+        const slides = document.querySelectorAll('.swiper-slide');
+        const totalSlides = slides.length;
+        const wrapper = document.querySelector('.swiper-wrapper');
+
+        // Funktion för att byta slide
+        function showSlide(index) {
+            if (index < 0) index = totalSlides - 1;
+            if (index >= totalSlides) index = 0;
+    
+            // Justera transform exakt
+            wrapper.style.transform = `translateX(-${index * 100}%)`;
+    
+            currentIndex = index;
+        }
+
+        // Swipe eventlyssnare
+        document.addEventListener("swiped-left", () => showSlide(currentIndex + 1));
+        document.addEventListener("swiped-right", () => showSlide(currentIndex - 1));
         const reasons = [
             "Du är mitt solsken varje dag! ☀️",
             "Du får mig att skratta även på dåliga dagar. 😂",
