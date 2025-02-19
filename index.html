@@ -150,92 +150,69 @@
     </style>
 </head>
 <body>
-<div class="flexbox">
-    <div class="upperSection">
-        <div class="overlay">
-            <h1>Jag älskar dig, <br> Sköldis ❤️</h1>
-            <div id="personalNote">
-                Du är vad som behövdes i mitt liv, Jag kommer älska dig tills dagen jag dör ❤️
+    <div class="flexbox">
+        <div class="upperSection">
+            <div class="overlay">
+                <h1>Jag älskar dig, <br> Sköldis ❤️</h1>
+                <div id="personalNote">
+                    Du är vad som behövdes i mitt liv, Jag kommer älska dig tills dagen jag dör ❤️
+                </div>
             </div>
         </div>
-    </div>
-
-    <!-- SWIPER CONTAINER -->
-    <div class="swiper-container">
-        <div class="swiper-wrapper">
-            <div class="swiper-slide">
-                <div class="container">
-                    <h2>💖 100+ Anledningar Varför Jag Älskar Dig 💖</h2>
-                    <p id="counter">1 / 100</p>
-                    <div id="reason-box">
-                        <p id="reason-text" class="reason-text">Du är mitt solsken varje dag! ☀️</p>
+    
+        <!-- SWIPER CONTAINER -->
+        <div class="swiper-container">
+            <div class="swiper-wrapper">
+                <div class="swiper-slide">
+                    <div class="container">
+                        <h2>💖 100+ Anledningar Varför Jag Älskar Dig 💖</h2>
+                        <p id="counter">1 / 100</p>
+                        <div id="reason-box">
+                            <p id="reason-text" class="reason-text">Du är mitt solsken varje dag! ☀️</p>
+                        </div>
+                        <button onclick="prevReason()">⬅️</button>
+                        <button onclick="nextReason()">➡️</button>
                     </div>
-                    <button onclick="prevReason()">⬅️</button>
-                    <button onclick="nextReason()">➡️</button>
                 </div>
-            </div>
-            <div class="swiper-slide">
-                <div class="container">
-                    <h2>🌟 Minnen Tillsammans 🌟</h2>
-                    <p>Här kan vi ha bilder eller text om fina minnen!</p>
+                <div class="swiper-slide">
+                    <div class="container">
+                        <h2>🌟 Minnen Tillsammans 🌟</h2>
+                        <p>Här kan vi ha bilder eller text om fina minnen!</p>
+                    </div>
                 </div>
-            </div>
-            <div class="swiper-slide">
-                <div class="container">
-                    <h2>💌 Meddelanden Till Dig 💌</h2>
-                    <p>Här kan du skriva små kärleksmeddelanden!</p>
+                <div class="swiper-slide">
+                    <div class="container">
+                        <h2>💌 Meddelanden Till Dig 💌</h2>
+                        <p>Här kan du skriva små kärleksmeddelanden!</p>
+                    </div>
                 </div>
             </div>
         </div>
+    
+        <!-- Swiper Navigation -->
+        <div class="swiper-pagination"></div>
     </div>
 
-    <!-- Swiper Navigation -->
-    <div class="swiper-pagination"></div>
-</div>
 
     <script>
-let currentIndex = 0;
-const slides = document.querySelectorAll('.swiper-slide');
-const totalSlides = slides.length;
-const wrapper = document.querySelector('.swiper-wrapper');
-
-function showSlide(index) {
-    if (index < 0) {
-        index = totalSlides - 1; // Hoppa till sista sliden om vi swipar vänster från första
-    }
-    if (index >= totalSlides) {
-        index = 0; // Hoppa till första sliden om vi swipar höger från sista
-    }
-
-    // Flytta wrapper exakt till rätt slide (fixar ackumulering)
-    let offset = index * -100;
-    wrapper.style.transform = `translateX(${offset}%)`;
-
-    currentIndex = index;
-}
-
-// Hantera swipe
-let startX = 0;
-let endX = 0;
-
-document.querySelector('.swiper-container').addEventListener('touchstart', (e) => {
-    startX = e.touches[0].clientX;
-});
-
-document.querySelector('.swiper-container').addEventListener('touchend', (e) => {
-    endX = e.changedTouches[0].clientX;
-    handleSwipe();
-});
-
-function handleSwipe() {
-    let diff = startX - endX;
-    if (diff > 50) {
-        showSlide(currentIndex + 1); // Swipe vänster
-    } else if (diff < -50) {
-        showSlide(currentIndex - 1); // Swipe höger
-    }
-}
-        
+        document.addEventListener("DOMContentLoaded", function () {
+            const swiper = new Swiper(".swiper-container", {
+                slidesPerView: "auto", // Gör att slides inte fyller hela skärmen
+                centeredSlides: true, // Ser till att varje slide är centrerad
+                spaceBetween: 20, // Avstånd mellan slides
+                loop: true, // Oändlig loop
+                pagination: {
+                    el: ".swiper-pagination",
+                    clickable: true,
+                },
+                navigation: {
+                    nextEl: ".swiper-button-next",
+                    prevEl: ".swiper-button-prev",
+                },
+            });
+        });
+    </script>
+    <script>
         const reasons = [
             "Du är mitt solsken varje dag! ☀️",
             "Du får mig att skratta även på dåliga dagar. 😂",
