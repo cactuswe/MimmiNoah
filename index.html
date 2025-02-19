@@ -330,8 +330,17 @@
             let displayMonths = months % 12;
             let displayYears = years;
 
-            document.getElementById("timeCounter").innerText = 
-                `${displayYears} år, ${displayMonths} månader, ${displayDays} dagar, ${hours % 24} timmar, ${minutes % 60} minuter, ${seconds % 60} sekunder`;
+            document.getElementById("timeCounter").innerHTML = 
+                `
+                <div class="timeFlex">
+                    <div class="timeItem">${displayYears} år,</div>
+                    <div class="timeItem">${displayMonths} månader,</div>
+                    <div class="timeItem">${displayDays} dagar,</div>
+                    <div class="timeItem">${hours % 24} timmar,</div>
+                    <div class="timeItem">${minutes % 60} minuter,</div>
+                    <div class="timeItem">${seconds % 60} sekunder</div>
+                </div>
+                `
 
             // Milstolpar (100, 200, 300 dagar etc., 6mån, 9mån, 1år, 1.5år, 2år, etc.)
             let milestones = [];
