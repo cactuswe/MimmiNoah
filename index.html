@@ -7,7 +7,7 @@
     
     <!-- PWA -->
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#ff758c">
+    <meta name="theme-color" content="#6a11cb">
     
     <!-- iOS PWA support -->
     <link rel="apple-touch-icon" href="icons/icon-192x192.png">
@@ -24,7 +24,7 @@
             user-select: none;
             -webkit-touch-callout: none;
             font-family: 'Arial', sans-serif;
-            background: linear-gradient(to bottom right, #ff9a9e, #fad0c4);
+            background: linear-gradient(to bottom right, #6a11cb, #2575fc);
             text-align: center;
             color: white;
             display: flex;
@@ -54,6 +54,17 @@
             background: rgba(255, 255, 255, 0.4);
             border-radius: 8px;
             height: 10vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .reason-text {
+            position: absolute;
+            width: 100%;
+            transition: transform 0.4s ease-in-out, opacity 0.4s;
         }
 
         button {
@@ -89,7 +100,7 @@
         <h1>💖 100+ Anledningar Varför Jag Älskar Dig 💖</h1>
         <p id="counter">1 / 100</p>
         <div id="reason-box">
-            <p id="reason-text">Du är mitt solsken varje dag! ☀️</p>
+            <p id="reason-text" class="reason-text">Du är mitt solsken varje dag! ☀️</p>
         </div>
         <button onclick="nextReason()">Nästa ➡️</button>
     </div>
@@ -111,13 +122,29 @@
         let index = 0;
 
         function nextReason() {
-            index++;
-            if (index >= reasons.length) {
-                index = 0;
-            }
-            document.getElementById("reason-text").textContent = reasons[index];
-            document.getElementById("counter").textContent = (index + 1) + " / " + reasons.length;
-            
+            const reasonBox = document.getElementById("reason-box");
+            const reasonText = document.getElementById("reason-text");
+
+            // Starta ut-animationsfas
+            reasonText.style.transform = "translateX(-100%)";
+            reasonText.style.opacity = "0";
+
+            setTimeout(() => {
+                // Byt text
+                index = (index + 1) % reasons.length;
+                reasonText.textContent = reasons[index];
+                document.getElementById("counter").textContent = (index + 1) + " / " + reasons.length;
+
+                // Starta in-animationsfas
+                reasonText.style.transform = "translateX(100%)";
+                reasonText.style.opacity = "0";
+
+                setTimeout(() => {
+                    reasonText.style.transform = "translateX(0)";
+                    reasonText.style.opacity = "1";
+                }, 50);
+            }, 400); // Tiden matchar CSS-animationen
+
             createHeart();
         }
 
