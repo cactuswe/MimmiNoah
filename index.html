@@ -388,34 +388,34 @@
         updateCounter();
     </script>
     <script>
-        // Firebase konfiguration (byt ut med din egen Firebase-konfiguration)
-        const firebaseConfig = {
-          apiKey: "AIzaSyBDMAPvvCb1MFFWgVb_8GTpQYwMSAR9uBU",
-          authDomain: "mimminoah-ee32a.firebaseapp.com",
-          databaseURL: "https://mimminoah-ee32a-default-rtdb.europe-west1.firebasedatabase.app",
-          projectId: "mimminoah-ee32a",
-          storageBucket: "mimminoah-ee32a.firebasestorage.app",
-          messagingSenderId: "598999784847",
-          appId: "1:598999784847:web:3de2bb39f019deeca27ffa"
-        };
+        document.addEventListener("DOMContentLoaded", function () {
+            // 🔥 Firebase konfiguration (Byt ut mot din egen)
+            const firebaseConfig = {
+                apiKey: "AIzaSyBDMAPvvCb1MFFWgVb_8GTpQYwMSAR9uBU",
+                authDomain: "mimminoah-ee32a.firebaseapp.com",
+                projectId: "mimminoah-ee32a",
+                storageBucket: "mimminoah-ee32a.appspot.com",
+                messagingSenderId: "598999784847",
+                appId: "1:598999784847:web:3de2bb39f019deeca27ffa"
+            };
 
-        // Initiera Firebase
-        const app = firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-        const messageRef = db.ref("latestMessage");
-        const messageBox = document.getElementById("messageBox");
+            // 🔥 Initiera Firebase
+            const app = firebase.initializeApp(firebaseConfig);
+            const db = firebase.firestore();
+            const messageRef = db.collection("messages").doc("latest");
+            const messageBox = document.getElementById("messageBox");
 
-        // Hämta och visa senaste meddelandet
-        messageRef.on("value", (snapshot) => {
-            const message = snapshot.val();
-            if (message !== null) {
-                messageBox.value = message;
-            }
-        });
+            // 🔥 Hämta senaste meddelandet från Firestore
+            messageRef.onSnapshot((doc) => {
+                if (doc.exists) {
+                    messageBox.value = doc.data().text;
+                }
+            });
 
-        // Spara nytt meddelande när användaren slutar skriva
-        messageBox.addEventListener("input", () => {
-            messageRef.set(messageBox.value);
+            // 🔥 Spara nytt meddelande vid ändring
+            messageBox.addEventListener("input", () => {
+                messageRef.set({ text: messageBox.value });
+            });
         });
     </script>
 </body>
