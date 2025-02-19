@@ -132,7 +132,7 @@
             display: flex;
             transition: transform 0.4s ease-in-out; /* Mjukare animation */
             will-change: transform; /* För bättre prestanda */
-            width: 300vw;
+            width: 300%;
         }
 
         .swiper-slide {
@@ -197,7 +197,7 @@ function showSlide(index) {
     if (index < 0) index = totalSlides - 1;
     if (index >= totalSlides) index = 0;
     
-    wrapper.style.transform = `translateX(-${index * 100}vw)`;
+    wrapper.style.transform = `translateX(-${index * 100}%)`;
     currentIndex = index;
 }
 
