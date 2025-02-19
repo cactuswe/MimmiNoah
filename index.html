@@ -83,7 +83,7 @@
 
         /* Hjärtanimation */
         .heart {
-            bottom: 60px;
+            bottom: 120px;
             position: fixed;
             font-size: 24px;
             color: red;
@@ -111,7 +111,7 @@
             height: 50vh;
             background: url('din-bild.jpg') center/cover no-repeat;
             background-position-y: -170px;
-            background-size: 180%;
+            background-size: 150%;
         }
         .overlay {
             width: 100vw;
@@ -138,6 +138,7 @@
             <div id="reason-box">
                 <p id="reason-text" class="reason-text">Du är mitt solsken varje dag! ☀️</p>
             </div>
+            <button onclick="prevReason()">⬅️ Förra</button>
             <button onclick="nextReason()">Nästa ➡️</button>
         </div>
     </div>
@@ -163,7 +164,7 @@
             const reasonText = document.getElementById("reason-text");
 
             // Starta ut-animationsfas
-            reasonText.style.transform = "translateX(-100%)";
+            reasonText.style.transform = "translateX(100%)";
             reasonText.style.opacity = "0";
 
             setTimeout(() => {
@@ -171,6 +172,32 @@
                 index = (index + 1) % reasons.length;
                 reasonText.textContent = reasons[index];
                 document.getElementById("counter").textContent = (index + 1) + " / " + reasons.length;
+
+                // Starta in-animationsfas
+                reasonText.style.transform = "translateX(-100%)";
+                reasonText.style.opacity = "0";
+
+                setTimeout(() => {
+                    reasonText.style.transform = "translateX(0)";
+                    reasonText.style.opacity = "1";
+                }, 50);
+            }, 400); // Tiden matchar CSS-animationen
+
+            createHeart();
+        }
+        function prevReason() {
+            const reasonBox = document.getElementById("reason-box");
+            const reasonText = document.getElementById("reason-text");
+
+            // Starta ut-animationsfas
+            reasonText.style.transform = "translateX(-100%)";
+            reasonText.style.opacity = "0";
+
+            setTimeout(() => {
+                // Byt text
+                index = (index - 1) % reasons.length;
+                reasonText.textContent = reasons[index];
+                document.getElementById("counter").textContent = (index - 1) + " / " + reasons.length;
 
                 // Starta in-animationsfas
                 reasonText.style.transform = "translateX(100%)";
