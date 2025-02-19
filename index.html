@@ -361,7 +361,7 @@
             let nextMilestone = milestones.find(m => m.date > now);
             if (nextMilestone) {
                 let milestoneText = `${nextMilestone.value} ${nextMilestone.type}, ${nextMilestone.date.toLocaleDateString("sv-SE", { day: 'numeric', month: 'long', year: 'numeric' })}`;
-                document.getElementById("nextMilestone").innerText = `Nästa milstolpe: ${milestoneText}`;
+                document.getElementById("nextMilestone").innerHTML = `<div>Nästa milstolpe: <br>${milestoneText}</div>`;
             } else {
                 document.getElementById("nextMilestone").innerText = `Inga fler planerade milstolpar`;
             }
