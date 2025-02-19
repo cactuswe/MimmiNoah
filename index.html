@@ -124,7 +124,7 @@
             right: 0;
         }
 .swiper-container {
-    width: 100%;
+    width: 100vw;
     overflow: hidden;
     position: relative;
     display: flex;
@@ -134,12 +134,13 @@
 
 .swiper-wrapper {
     display: flex;
+    justify-content: space-evenly;
     transition: transform 0.3s ease-in-out;
-    width: 100%; /* Viktigt! Använd inte 300% */
+    width: 300vw; /* Viktigt! Använd inte 300% */
 }
 
 .swiper-slide {
-    min-width: 100%; /* Säkerställer att varje slide tar hela bredden */
+    min-width: 100vw; /* Säkerställer att varje slide tar hela bredden */
     text-align: center;
     padding: 20px;
     display: flex;
