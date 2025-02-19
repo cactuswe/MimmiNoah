@@ -383,5 +383,36 @@
         
         updateCounter();
     </script>
+    <script>
+        // Firebase konfiguration (byt ut med din egen Firebase-konfiguration)
+        const firebaseConfig = {
+            apiKey: "DIN_API_KEY",
+            authDomain: "DITT_PROJECT.firebaseapp.com",
+            databaseURL: "https://DITT_PROJECT.firebaseio.com",
+            projectId: "DITT_PROJECT",
+            storageBucket: "DITT_PROJECT.appspot.com",
+            messagingSenderId: "DIN_SENDER_ID",
+            appId: "DIN_APP_ID"
+        };
+
+        // Initiera Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const messageRef = db.ref("latestMessage");
+        const messageBox = document.getElementById("messageBox");
+
+        // Hämta och visa senaste meddelandet
+        messageRef.on("value", (snapshot) => {
+            const message = snapshot.val();
+            if (message !== null) {
+                messageBox.value = message;
+            }
+        });
+
+        // Spara nytt meddelande när användaren slutar skriva
+        messageBox.addEventListener("input", () => {
+            messageRef.set(messageBox.value);
+        });
+    </script>
 </body>
 </html>
