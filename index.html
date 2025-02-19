@@ -4,79 +4,83 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>100+ Anledningar Varför Jag Älskar Dig</title>
-	 <style>
-        html,
-        body {
-          overflow: hidden;
-          -webkit-user-select: none;
-          -moz-user-select: none;
-          -ms-user-select: none;
-          user-select: none;
-          -webkit-touch-callout: none;
+    
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#ff758c">
+    
+    <!-- iOS PWA support -->
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Jag Älskar Dig ❤️">
+    
+    <style>
+        html, body {
+            overflow: hidden;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to bottom right, #ff9a9e, #fad0c4);
+            text-align: center;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
         }
-	 	body {
-    font-family: 'Arial', sans-serif;
-    background: linear-gradient(to bottom right, #ff9a9e, #fad0c4);
-    text-align: center;
-    color: white;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    margin: 0;
-}
 
-.container {
-    background: rgba(255, 255, 255, 0.2);
-    padding: 20px;
-    border-radius: 10px;
-    backdrop-filter: blur(10px);
-    width: 90%;
-    max-width: 400px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-}
+        .container {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
 
-h1 {
-    font-size: 24px;
-}
+        h1 { font-size: 24px; }
 
-#reason-box {
-    font-size: 22px;
-    font-weight: bold;
-    margin: 20px 0;
-    padding: 15px;
-    background: rgba(255, 255, 255, 0.4);
-    border-radius: 8px;
-}
+        #reason-box {
+            font-size: 22px;
+            font-weight: bold;
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.4);
+            border-radius: 8px;
+        }
 
-button {
-    background: #ff758c;
-    color: white;
-    border: none;
-    padding: 12px 20px;
-    font-size: 18px;
-    cursor: pointer;
-    border-radius: 5px;
-    transition: background 0.3s;
-}
+        button {
+            background: #ff758c;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 18px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
 
-button:hover {
-    background: #e84370;
-}
+        button:hover { background: #e84370; }
 
-/* Hjärtanimation */
-.heart {
-    position: fixed;
-    font-size: 24px;
-    color: red;
-    animation: fall 2s linear;
-}
+        /* Hjärtanimation */
+        .heart {
+            position: fixed;
+            font-size: 24px;
+            color: red;
+            animation: fall 2s linear;
+        }
 
-@keyframes fall {
-    0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
-    100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
-}
-	</style>
+        @keyframes fall {
+            0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+        }
+    </style>
 </head>
 <body>
 
@@ -90,41 +94,41 @@ button:hover {
     </div>
 
     <script>
-			const reasons = [
-    "Du är mitt solsken varje dag! ☀️",
-    "Du får mig att skratta även på dåliga dagar. 😂",
-    "Ditt leende gör mig lycklig. 😊",
-    "Du stöttar mig i allt jag gör. ❤️",
-    "Dina kramar är de bästa i världen! 🤗",
-    "Jag älskar hur du alltid bryr dig om andra. 💕",
-    "Du är min bästa vän och min stora kärlek. 💑",
-    "Ditt skratt är musik för mina öron. 🎶",
-    "Du gör mig till en bättre person. 🌱",
-    "Du ger mig fjärilar i magen, fortfarande! 🦋"
-];
+        const reasons = [
+            "Du är mitt solsken varje dag! ☀️",
+            "Du får mig att skratta även på dåliga dagar. 😂",
+            "Ditt leende gör mig lycklig. 😊",
+            "Du stöttar mig i allt jag gör. ❤️",
+            "Dina kramar är de bästa i världen! 🤗",
+            "Jag älskar hur du alltid bryr dig om andra. 💕",
+            "Du är min bästa vän och min stora kärlek. 💑",
+            "Ditt skratt är musik för mina öron. 🎶",
+            "Du gör mig till en bättre person. 🌱",
+            "Du ger mig fjärilar i magen, fortfarande! 🦋"
+        ];
 
-let index = 0;
+        let index = 0;
 
-function nextReason() {
-    index++;
-    if (index >= reasons.length) {
-        index = 0;  // Starta om från början om listan är slut
-    }
-    document.getElementById("reason-text").textContent = reasons[index];
-    document.getElementById("counter").textContent = (index + 1) + " / " + reasons.length;
-    
-    createHeart();
-}
+        function nextReason() {
+            index++;
+            if (index >= reasons.length) {
+                index = 0;
+            }
+            document.getElementById("reason-text").textContent = reasons[index];
+            document.getElementById("counter").textContent = (index + 1) + " / " + reasons.length;
+            
+            createHeart();
+        }
 
-function createHeart() {
-    let heart = document.createElement("div");
-    heart.classList.add("heart");
-    heart.innerHTML = "❤️";
-    heart.style.left = Math.random() * 100 + "vw";
-    document.body.appendChild(heart);
+        function createHeart() {
+            let heart = document.createElement("div");
+            heart.classList.add("heart");
+            heart.innerHTML = "❤️";
+            heart.style.left = Math.random() * 100 + "vw";
+            document.body.appendChild(heart);
 
-    setTimeout(() => heart.remove(), 2000);
-}
-	 </script>
+            setTimeout(() => heart.remove(), 2000);
+        }
+    </script>
 </body>
 </html>
