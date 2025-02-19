@@ -194,10 +194,10 @@
             reasonText.style.opacity = "0";
 
             setTimeout(() => {
-                // Byt text
-                index = (index - 1) % reasons.length;
+                // Byt text med korrekt hantering av negativt index
+                index = (index - 1 + reasons.length) % reasons.length;
                 reasonText.textContent = reasons[index];
-                document.getElementById("counter").textContent = (index - 1) + " / " + reasons.length;
+                document.getElementById("counter").textContent = (index + 1) + " / " + reasons.length;
 
                 // Starta in-animationsfas
                 reasonText.style.transform = "translateX(100%)";
