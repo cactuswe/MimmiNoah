@@ -197,16 +197,20 @@ const slides = document.querySelectorAll('.swiper-slide');
 const totalSlides = slides.length;
 const wrapper = document.querySelector('.swiper-wrapper');
 
-// Funktion för att byta slide
 function showSlide(index) {
-    if (index < 0) index = totalSlides - 1;
-    if (index >= totalSlides) index = 0;
-    
+    if (index < 0) {
+        index = totalSlides - 1; // Hoppa till sista sliden om vi swipar vänster från första
+    }
+    if (index >= totalSlides) {
+        index = 0; // Hoppa till första sliden om vi swipar höger från sista
+    }
+
+    // Flytta wrapper exakt till rätt slide
     wrapper.style.transform = `translateX(-${index * 100}%)`;
     currentIndex = index;
 }
 
-// Touch/swipe-hantering
+// Hantera swipe
 let startX = 0;
 let endX = 0;
 
@@ -222,11 +226,9 @@ document.querySelector('.swiper-container').addEventListener('touchend', (e) => 
 function handleSwipe() {
     let diff = startX - endX;
     if (diff > 50) {
-        // Swipe vänster (gå framåt)
-        showSlide(currentIndex + 1);
+        showSlide(currentIndex + 1); // Swipe vänster
     } else if (diff < -50) {
-        // Swipe höger (gå bakåt)
-        showSlide(currentIndex - 1);
+        showSlide(currentIndex - 1); // Swipe höger
     }
 }
         
