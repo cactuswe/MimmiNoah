@@ -122,24 +122,23 @@
             top: 0;
             right: 0;
         }
-        .swiper-container {
-            width: 100%;
-            height: auto;
-            overflow: hidden;
-        }
+.swiper-container {
+    width: 100%;
+    overflow: hidden;
+    position: relative;
+}
 
-        .swiper-wrapper {
-            display: flex;
-            transition: transform 0.4s ease-in-out; /* Mjukare animation */
-            will-change: transform; /* För bättre prestanda */
-            width: 300%;
-        }
+.swiper-wrapper {
+    display: flex;
+    transition: transform 0.3s ease-in-out;
+    width: 300%; /* 3 slides á 100% */
+}
 
-        .swiper-slide {
-            flex: 0 0 100%;
-            text-align: center;
-            padding: 20px;
-        }
+.swiper-slide {
+    flex: 0 0 100%;
+    text-align: center;
+    padding: 20px;
+}
     </style>
 </head>
 <body>
