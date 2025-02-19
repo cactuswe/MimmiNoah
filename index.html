@@ -320,55 +320,45 @@
         function updateCounter() {
             const startDate = new Date("2024-06-14T00:00:00");
             const now = new Date();
-            const diffMs = now - startDate;
-
-            let seconds = Math.floor(diffMs / 1000);
-            let minutes = Math.floor(seconds / 60);
-            let hours = Math.floor(minutes / 60);
-            let days = Math.floor(hours / 24);
-            let months = Math.floor(days / 30.44); 
-            let years = Math.floor(months / 12);
-
-            let displayDays = days - (months * 30);;
+        
+            // Beräkna år
+            let years = now.getFullYear() - startDate.getFullYear();
+        
+            // Beräkna månader
+            let months = now.getMonth() - startDate.getMonth() + (years * 12);
+        
+            // Justera år om vi inte nått födelsedatumet för det aktuella året
+            if (now.getDate() < startDate.getDate()) {
+                months--;
+            }
+            let displayYears = Math.floor(months / 12);
             let displayMonths = months % 12;
-            let displayYears = years;
-
-            document.getElementById("timeCounter").innerHTML = 
+        
+            // Beräkna exakt antal dagar
+            let lastMonthDate = new Date(startDate);
+            lastMonthDate.setMonth(startDate.getMonth() + months);
+            let displayDays = Math.floor((now - lastMonthDate) / (1000 * 60 * 60 * 24));
+        
+            // Timmar, minuter, sekunder
+            let hours = now.getHours();
+            let minutes = now.getMinutes();
+            let seconds = now.getSeconds();
+        
+            document.getElementById("timeCounter").innerHTML =
                 `
                 <div class="timeFlex">
                     <div class="timeItem">${displayYears} år,</div>
                     <div class="timeItem">${displayMonths} månader,</div>
                     <div class="timeItem">${displayDays} dagar,</div>
-                    <div class="timeItem">${hours % 24} timmar,</div>
-                    <div class="timeItem">${minutes % 60} minuter,</div>
-                    <div class="timeItem">${seconds % 60} sekunder</div>
+                    <div class="timeItem">${hours} timmar,</div>
+                    <div class="timeItem">${minutes} minuter,</div>
+                    <div class="timeItem">${seconds} sekunder</div>
                 </div>
-                `
-
-            // Milstolpar (100, 200, 300 dagar etc., 6mån, 9mån, 1år, 1.5år, 2år, etc.)
-            let milestones = [];
-            for (let i = 100; i <= 2000; i += 100) {
-                milestones.push({ type: "dagar", value: i, date: new Date(startDate.getTime() + i * 86400000) });
-            }
-            for (let i = 6; i <= 36; i += 3) {
-                milestones.push({ type: "månader", value: i, date: new Date(startDate.getFullYear(), startDate.getMonth() + i, startDate.getDate()) });
-            }
-            for (let i = 1; i <= 10; i++) {
-                milestones.push({ type: "år", value: i, date: new Date(startDate.getFullYear() + i, startDate.getMonth(), startDate.getDate()) });
-            }
-
-            // Hitta nästa kommande milstolpe
-            let nextMilestone = milestones.find(m => m.date > now);
-            if (nextMilestone) {
-                let milestoneText = `${nextMilestone.value} ${nextMilestone.type}, ${nextMilestone.date.toLocaleDateString("sv-SE", { day: 'numeric', month: 'long', year: 'numeric' })}`;
-                document.getElementById("nextMilestone").innerHTML = `<div>Nästa milstolpe: <br>${milestoneText}</div>`;
-            } else {
-                document.getElementById("nextMilestone").innerText = `Inga fler planerade milstolpar`;
-            }
-
+                `;
+        
             setTimeout(updateCounter, 1000);
         }
-
+        
         updateCounter();
     </script>
 </body>
