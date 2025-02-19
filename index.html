@@ -92,17 +92,33 @@
             0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
             100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
         }
+        .flexbox {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            width: 100vw;
+        }
+        .upperSection {
+            background: url("din-bild.jpg" cover;
+            height: 50vh
+        }
     </style>
 </head>
 <body>
-
-    <div class="container">
-        <h1>💖 100+ Anledningar Varför Jag Älskar Dig 💖</h1>
-        <p id="counter">1 / 100</p>
-        <div id="reason-box">
-            <p id="reason-text" class="reason-text">Du är mitt solsken varje dag! ☀️</p>
+    <div class="flexbox">
+        <div class="upperSection">
+        
         </div>
-        <button onclick="nextReason()">Nästa ➡️</button>
+        <div class="container">
+            <h1>💖 100+ Anledningar Varför Jag Älskar Dig 💖</h1>
+            <p id="counter">1 / 100</p>
+            <div id="reason-box">
+                <p id="reason-text" class="reason-text">Du är mitt solsken varje dag! ☀️</p>
+            </div>
+            <button onclick="nextReason()">Nästa ➡️</button>
+        </div>
     </div>
 
     <script>
