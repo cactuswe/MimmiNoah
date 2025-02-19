@@ -206,8 +206,10 @@ function showSlide(index) {
         index = 0; // Hoppa till första sliden om vi swipar höger från sista
     }
 
-    // Flytta wrapper exakt till rätt slide
-    wrapper.style.transform = `translateX(-${index * 100}%)`;
+    // Flytta wrapper exakt till rätt slide (fixar ackumulering)
+    let offset = index * -100;
+    wrapper.style.transform = `translateX(${offset}%)`;
+
     currentIndex = index;
 }
 
