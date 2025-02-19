@@ -196,7 +196,7 @@ function showSlide(index) {
     if (index < 0) index = totalSlides - 1;
     if (index >= totalSlides) index = 0;
     
-    wrapper.style.transform = `translateX(-${index * 100}%)`;
+    wrapper.style.transform = `translateX(-${index * 100}vw)`;
     currentIndex = index;
 }
 
