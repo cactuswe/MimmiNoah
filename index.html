@@ -126,24 +126,24 @@
 .swiper-container {
     width: 100%;
     overflow: hidden;
-    display: flex;
-    justify-content: center; /* Centrerar slidarna */
-    align-items: center; /* Centrerar vertikalt */
     position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .swiper-wrapper {
     display: flex;
     transition: transform 0.3s ease-in-out;
-    width: 300%; /* Justeras beroende på antal slides */
+    width: 100%; /* Viktigt! Använd inte 300% */
 }
 
 .swiper-slide {
-    flex: 0 0 100%;
+    min-width: 100%; /* Säkerställer att varje slide tar hela bredden */
     text-align: center;
     padding: 20px;
     display: flex;
-    justify-content: center; /* Centrerar innehållet i slidarna */
+    justify-content: center;
     align-items: center;
 }
     </style>
