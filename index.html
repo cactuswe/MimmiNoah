@@ -388,35 +388,49 @@
         updateCounter();
     </script>
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            // 🔥 Firebase konfiguration (Byt ut mot din egen)
-            const firebaseConfig = {
-                apiKey: "AIzaSyBDMAPvvCb1MFFWgVb_8GTpQYwMSAR9uBU",
-                authDomain: "mimminoah-ee32a.firebaseapp.com",
-                projectId: "mimminoah-ee32a",
-                storageBucket: "mimminoah-ee32a.appspot.com",
-                messagingSenderId: "598999784847",
-                appId: "1:598999784847:web:3de2bb39f019deeca27ffa"
-            };
+        document.addEventListener("DOMContentLoaded", async function () {
+            try {
+                // 🔥 Firebase konfiguration
+                const firebaseConfig = {
+                    apiKey: "AIzaSyBDMAPvvCb1MFFWgVb_8GTpQYwMSAR9uBU",
+                    authDomain: "mimminoah-ee32a.firebaseapp.com",
+                    projectId: "mimminoah-ee32a",
+                    storageBucket: "mimminoah-ee32a.appspot.com",
+                    messagingSenderId: "598999784847",
+                    appId: "1:598999784847:web:3de2bb39f019deeca27ffa"
+                };
 
-            // 🔥 Initiera Firebase
-            const app = firebase.initializeApp(firebaseConfig);
-            const db = firebase.firestore();
-            const messageRef = db.collection("messages").doc("latest");
-            const messageBox = document.getElementById("messageBox");
+                // 🔥 Initiera Firebase
+                const app = firebase.initializeApp(firebaseConfig);
+                const db = firebase.firestore();
+                const messageRef = db.collection("messages").doc("latest");
+                const messageBox = document.getElementById("messageBox");
 
-            // 🔥 Hämta senaste meddelandet från Firestore
-            messageRef.onSnapshot((doc) => {
-                if (doc.exists) {
-                    messageBox.value = doc.data().text;
-                }
-            });
+                // 🔥 Hämta senaste meddelandet
+                messageRef.onSnapshot((doc) => {
+                    if (doc.exists) {
+                        messageBox.value = doc.data().text || "";
+                    } else {
+                        console.log("Dokumentet saknas, skapar nytt...");
+                        messageRef.set({ text: "" }); // Skapa dokument om det saknas
+                    }
+                });
 
-            // 🔥 Spara nytt meddelande vid ändring
-            messageBox.addEventListener("input", () => {
-                messageRef.set({ text: messageBox.value });
-            });
+                // 🔥 Spara nytt meddelande vid ändring
+                messageBox.addEventListener("input", async () => {
+                    try {
+                        await messageRef.set({ text: messageBox.value });
+                        console.log("Meddelande sparat:", messageBox.value);
+                    } catch (error) {
+                        console.error("Fel vid sparning:", error);
+                    }
+                });
+
+            } catch (error) {
+                console.error("🔥 Firebase-fel:", error);
+            }
         });
     </script>
+
 </body>
 </html>
