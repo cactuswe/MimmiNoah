@@ -213,6 +213,7 @@
                         <h2>💌 Meddelanden 💌</h2>
                         <p>Senaste:</p>
                         <textarea id="messageBox" placeholder="Skriv ett meddelande..."></textarea>
+                        <p id="errorLog"></p>
                     </div>
                 </div>
             </div>
@@ -389,6 +390,8 @@
     </script>
     <script>
         document.addEventListener("DOMContentLoaded", async function () {
+            const errorLog = document.getElementById("errorLog");
+
             try {
                 // 🔥 Firebase konfiguration
                 const firebaseConfig = {
@@ -411,8 +414,8 @@
                     if (doc.exists) {
                         messageBox.value = doc.data().text || "";
                     } else {
-                        console.log("Dokumentet saknas, skapar nytt...");
-                        messageRef.set({ text: "" }); // Skapa dokument om det saknas
+                        errorLog.innerText = "⚠️ Dokumentet saknas, skapar nytt...";
+                        messageRef.set({ text: "" });
                     }
                 });
 
@@ -420,17 +423,15 @@
                 messageBox.addEventListener("input", async () => {
                     try {
                         await messageRef.set({ text: messageBox.value });
-                        console.log("Meddelande sparat:", messageBox.value);
                     } catch (error) {
-                        console.error("Fel vid sparning:", error);
+                        errorLog.innerText = "❌ Fel vid sparning: " + error.message;
                     }
                 });
 
             } catch (error) {
-                console.error("🔥 Firebase-fel:", error);
+                errorLog.innerText = "❌ Firebase-fel: " + error.message;
             }
         });
     </script>
-
 </body>
 </html>
