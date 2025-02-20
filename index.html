@@ -10,9 +10,6 @@
     <!-- Swiper JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
-    
     <!-- PWA -->
     <link rel="manifest" href="manifest.json">
     
@@ -388,49 +385,47 @@
         
         updateCounter();
     </script>
-    <script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // 🔥 Firebase konfiguration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBDMAPvvCb1MFFWgVb_8GTpQYwMSAR9uBU",
+            authDomain: "mimminoah-ee32a.firebaseapp.com",
+            projectId: "mimminoah-ee32a",
+            storageBucket: "mimminoah-ee32a.appspot.com",
+            messagingSenderId: "598999784847",
+            appId: "1:598999784847:web:3de2bb39f019deeca27ffa"
+        };
+
+        // 🔥 Initiera Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const messageRef = doc(db, "messages", "latest");
+
         document.addEventListener("DOMContentLoaded", async function () {
+            const messageBox = document.getElementById("messageBox");
             const errorLog = document.getElementById("errorLog");
 
-            try {
-                // 🔥 Firebase konfiguration
-                const firebaseConfig = {
-                    apiKey: "AIzaSyBDMAPvvCb1MFFWgVb_8GTpQYwMSAR9uBU",
-                    authDomain: "mimminoah-ee32a.firebaseapp.com",
-                    projectId: "mimminoah-ee32a",
-                    storageBucket: "mimminoah-ee32a.appspot.com",
-                    messagingSenderId: "598999784847",
-                    appId: "1:598999784847:web:3de2bb39f019deeca27ffa"
-                };
+            // 🔥 Hämta senaste meddelandet
+            onSnapshot(messageRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    messageBox.value = docSnap.data().text || "";
+                } else {
+                    errorLog.innerText = "⚠️ Dokumentet saknas, skapar nytt...";
+                    setDoc(messageRef, { text: "" });
+                }
+            });
 
-                // 🔥 Initiera Firebase
-                const app = firebase.initializeApp(firebaseConfig);
-                const db = firebase.firestore();
-                const messageRef = db.collection("messages").doc("latest");
-                const messageBox = document.getElementById("messageBox");
-
-                // 🔥 Hämta senaste meddelandet
-                messageRef.onSnapshot((doc) => {
-                    if (doc.exists) {
-                        messageBox.value = doc.data().text || "";
-                    } else {
-                        errorLog.innerText = "⚠️ Dokumentet saknas, skapar nytt...";
-                        messageRef.set({ text: "" });
-                    }
-                });
-
-                // 🔥 Spara nytt meddelande vid ändring
-                messageBox.addEventListener("input", async () => {
-                    try {
-                        await messageRef.set({ text: messageBox.value });
-                    } catch (error) {
-                        errorLog.innerText = "❌ Fel vid sparning: " + error.message;
-                    }
-                });
-
-            } catch (error) {
-                errorLog.innerText = "❌ Firebase-fel: " + error.message;
-            }
+            // 🔥 Spara nytt meddelande vid ändring
+            messageBox.addEventListener("input", async () => {
+                try {
+                    await setDoc(messageRef, { text: messageBox.value });
+                } catch (error) {
+                    errorLog.innerText = "❌ Fel vid sparning: " + error.message;
+                }
+            });
         });
     </script>
 </body>
