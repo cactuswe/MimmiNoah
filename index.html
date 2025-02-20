@@ -385,6 +385,7 @@
         
         updateCounter();
     </script>
+    <!-- ✅ Importera Firebase korrekt -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -408,24 +409,29 @@
             const messageBox = document.getElementById("messageBox");
             const errorLog = document.getElementById("errorLog");
 
-            // 🔥 Hämta senaste meddelandet
-            onSnapshot(messageRef, (docSnap) => {
-                if (docSnap.exists()) {
-                    messageBox.value = docSnap.data().text || "";
-                } else {
-                    errorLog.innerText = "⚠️ Dokumentet saknas, skapar nytt...";
-                    setDoc(messageRef, { text: "" });
-                }
-            });
+            try {
+                // 🔥 Hämta senaste meddelandet och uppdatera i realtid
+                onSnapshot(messageRef, (docSnap) => {
+                    if (docSnap.exists()) {
+                        messageBox.value = docSnap.data().text || "";
+                    } else {
+                        errorLog.innerText = "⚠️ Dokumentet saknas, skapar nytt...";
+                        setDoc(messageRef, { text: "" });
+                    }
+                });
 
-            // 🔥 Spara nytt meddelande vid ändring
-            messageBox.addEventListener("input", async () => {
-                try {
-                    await setDoc(messageRef, { text: messageBox.value });
-                } catch (error) {
-                    errorLog.innerText = "❌ Fel vid sparning: " + error.message;
-                }
-            });
+                // 🔥 Spara nytt meddelande vid ändring
+                messageBox.addEventListener("input", async () => {
+                    try {
+                        await setDoc(messageRef, { text: messageBox.value });
+                    } catch (error) {
+                        errorLog.innerText = "❌ Fel vid sparning: " + error.message;
+                    }
+                });
+
+            } catch (error) {
+                errorLog.innerText = "❌ Firebase-fel: " + error.message;
+            }
         });
     </script>
 </body>
