@@ -518,65 +518,53 @@
         updateCounter();
     </script>
     <!-- ✅ Importera Firebase korrekt -->
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-    import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyBDMAPvvCb1MFFWgVb_8GTpQYwMSAR9uBU",
-        authDomain: "mimminoah-ee32a.firebaseapp.com",
-        projectId: "mimminoah-ee32a",
-        storageBucket: "mimminoah-ee32a.appspot.com",
-        messagingSenderId: "598999784847",
-        appId: "1:598999784847:web:3de2bb39f019deeca27ffa"
-    };
+        // 🔥 Firebase konfiguration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBDMAPvvCb1MFFWgVb_8GTpQYwMSAR9uBU",
+            authDomain: "mimminoah-ee32a.firebaseapp.com",
+            projectId: "mimminoah-ee32a",
+            storageBucket: "mimminoah-ee32a.appspot.com",
+            messagingSenderId: "598999784847",
+            appId: "1:598999784847:web:3de2bb39f019deeca27ffa"
+        };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth(app);
-    const messageRef = doc(db, "messages", "latest");
+        // 🔥 Initiera Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const messageRef = doc(db, "messages", "latest");
 
-    // Koppla UID till namn
-    const userNames = {
-        "ditt_uid_här": "N", // Ersätt med ditt UID
-        "hennes_uid_här": "M" // Ersätt med hennes UID
-    };
+        document.addEventListener("DOMContentLoaded", async function () {
+            const messageBox = document.getElementById("messageBox");
+            const errorLog = document.getElementById("errorLog");
 
-    // Logga in användaren anonymt
-    signInAnonymously(auth)
-        .then(() => {
-            console.log("Anonym inloggning lyckades!");
-            console.log("Ditt UID:", auth.currentUser.uid); // Hämta ditt UID
-        })
-        .catch((error) => {
-            console.error("Fel vid anonym inloggning:", error);
-        });
-
-    document.addEventListener("DOMContentLoaded", async function () {
-        const messageBox = document.getElementById("messageBox");
-        const errorLog = document.getElementById("errorLog");
-
-        onSnapshot(messageRef, (docSnap) => {
-            if (docSnap.exists()) {
-                const data = docSnap.data();
-                messageBox.value = data.text || "";
-                const sender = userNames[data.sender] || "Okänd"; // Hämta namn baserat på UID
-                document.getElementById("senderName").innerText = `Avsändare: ${sender}`;
-            } else {
-                errorLog.innerText = "⚠️ Dokumentet saknas, skapar nytt...";
-                setDoc(messageRef, { text: "", sender: auth.currentUser.uid });
-            }
-        });
-
-        messageBox.addEventListener("input", async () => {
             try {
-                await setDoc(messageRef, { text: messageBox.value, sender: auth.currentUser.uid });
+                // 🔥 Hämta senaste meddelandet och uppdatera i realtid
+                onSnapshot(messageRef, (docSnap) => {
+                    if (docSnap.exists()) {
+                        messageBox.value = docSnap.data().text || "";
+                    } else {
+                        errorLog.innerText = "⚠️ Dokumentet saknas, skapar nytt...";
+                        setDoc(messageRef, { text: "" });
+                    }
+                });
+
+                // 🔥 Spara nytt meddelande vid ändring
+                messageBox.addEventListener("input", async () => {
+                    try {
+                        await setDoc(messageRef, { text: messageBox.value });
+                    } catch (error) {
+                        errorLog.innerText = "❌ Fel vid sparning: " + error.message;
+                    }
+                });
+
             } catch (error) {
-                errorLog.innerText = "❌ Fel vid sparning: " + error.message;
+                errorLog.innerText = "❌ Firebase-fel: " + error.message;
             }
         });
-    });
-</script>
+    </script>
 </body>
 </html>
